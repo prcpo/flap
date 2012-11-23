@@ -1,19 +1,22 @@
 #!/bin/bash
 
 DATABASE=test
-SQL_PATH=sql/
 HOST=localhost
 DBA=postgres
 ADMIN=postgres
+TMP_PATH=/tmp
 
+cd sql
 
-psql -h $HOST -U $DBA -f $SQLPATH database_create.sql;
+psql -h $HOST -U $DBA -f database_create.sql;
 
-psql -h $HOST -U $ADMIN -1 -d $DATABASE -f $SQLPATH ext.sql;
-psql -h $HOST -U $ADMIN -1 -d $DATABASE -f $SQLPATH json.sql;
-psql -h $HOST -U $ADMIN -1 -d $DATABASE -f $SQLPATH tools.sql;
-psql -h $HOST -U $ADMIN -1 -d $DATABASE -f $SQLPATH test.sql;
-psql -h $HOST -U $ADMIN -1 -d $DATABASE -f $SQLPATH seq.sql;
-psql -h $HOST -U $ADMIN -1 -d $DATABASE -f $SQLPATH def.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f ext.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f json.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f tools.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f test.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f seq.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f def.sql;
 
-psql -h $HOST -U $ADMIN -1 -d $DATABASE -f $SQLPATH public.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f public.sql;
+
+cd ..

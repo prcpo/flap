@@ -1,6 +1,6 @@
 -- Database: accounting
 
-DROP DATABASE test;
+--DROP DATABASE test;
 
 CREATE DATABASE test
 --  WITH OWNER = postgres
