@@ -5,8 +5,10 @@ HOST=localhost
 DBA=postgres
 ADMIN=postgres
 TMP_PATH=/tmp
+CUR_PATH=$PWD
 
 cd sql
+
 
 psql -h $HOST -U $DBA -f database_create.sql;
 
