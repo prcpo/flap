@@ -12,7 +12,7 @@ CREATE DATABASE test
 ;
 
 ALTER DATABASE test
-  SET search_path = public, ext;
+  SET search_path = public, ext, tools;
 
 COMMENT ON DATABASE test
   IS 'Свободная учётная система с полностью открытым кодом.';
