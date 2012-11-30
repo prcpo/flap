@@ -18,6 +18,8 @@ psql -h $HOST -U $ADMIN -1 -d $DATABASE -f tools.sql;
 psql -h $HOST -U $ADMIN -1 -d $DATABASE -f test.sql;
 psql -h $HOST -U $ADMIN -1 -d $DATABASE -f seq.sql;
 psql -h $HOST -U $ADMIN -1 -d $DATABASE -f def.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f set.sql;
+psql -h $HOST -U $ADMIN -1 -d $DATABASE -f obj.sql;
 
 psql -h $HOST -U $ADMIN -1 -d $DATABASE -f public.sql;
 
