@@ -1,8 +1,4 @@
--- Database: accounting
-
---DROP DATABASE test;
-
-CREATE DATABASE test
+CREATE DATABASE __DATABASE__
 --  WITH OWNER = postgres
 --       ENCODING = 'UTF8'
 --       TABLESPACE = pg_default
@@ -11,8 +7,8 @@ CREATE DATABASE test
 --       CONNECTION LIMIT = -1
 ;
 
-ALTER DATABASE test
+ALTER DATABASE __DATABASE__
   SET search_path = public, ext, tools;
 
-COMMENT ON DATABASE test
+COMMENT ON DATABASE __DATABASE__
   IS 'Свободная учётная система с полностью открытым кодом.';

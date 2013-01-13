@@ -9,6 +9,3 @@ CREATE SCHEMA ext
 COMMENT ON SCHEMA ext
   IS 'Пакеты расширений устанавливаются сюда.';
 
-
-CREATE EXTENSION ltree
-   SCHEMA ext;
