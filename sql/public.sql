@@ -22,6 +22,7 @@ SET search_path = public, pg_catalog;
 CREATE VIEW companies AS
     SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("current_user"())::text));
 
+GRANT SELECT ON TABLE companies TO GROUP accuser;
 
 -- Completed on 2012-11-23 12:07:01 OMST
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Имя создаваемой базы данных
-DATABASE=test
+DATABASE=accounting
 
 # IP адрес или имя сервера.
 HOST=localhost
@@ -25,20 +25,23 @@ SQLDBA='psql -h '$HOST' -U '$DBA
 
 cd sql
 
+
 cat database_drop.sql.template | sed 's/__DATABASE__/'$DATABASE'/g'  > $TMP_PATH/database_drop.sql
 cat database_create.sql.template | sed 's/__DATABASE__/'$DATABASE'/g'  > $TMP_PATH/database_create.sql
-
-$SQLDBA -f $TMP_PATH/database_drop.sql
-$SQLDBA -f $TMP_PATH/database_create.sql;
 
 # Создание базы данных от имени DBA
 PGPASSWORD=$DBAPASSWD
 export PGPASSWORD
 
-$SQLDBA -c "CREATE USER "$ADMIN" WITH PASSWORD '"$ADMINPASSWD"'"
-$SQLDBA -c 'GRANT ALL PRIVILEGES ON DATABASE '$DATABASE' to '$ADMIN
 
-# А вот схему ext в БД нао создавать от имени нашего админитратора
+$SQLDBA -f $TMP_PATH/database_drop.sql;
+$SQLDBA -f $TMP_PATH/database_create.sql;
+
+$SQLDBA -c "CREATE USER "$ADMIN" WITH CREATEROLE REPLICATION PASSWORD '"$ADMINPASSWD"'" ;
+$SQLDBA -c 'ALTER DATABASE '$DATABASE' OWNER TO '$ADMIN ;
+$SQLDBA -c 'GRANT ALL PRIVILEGES ON DATABASE '$DATABASE' to '$ADMIN ;
+
+# А вот схему ext в БД надо создавать от имени нашего админитратора
 PGPASSWORD=$ADMINPASSWD
 export PGPASSWORD
 
@@ -46,14 +49,15 @@ $SQL ext.sql;
 
 # Чтобы добавить расширения в схему ext опять нужны права DBA
 PGPASSWORD=$DBAPASSWD
-export PGPASSWORD
+export PGPASSWORD;
 
-$SQLDBA -d $DATABASE -f extentions.sql
+$SQLDBA -d $DATABASE -f extentions.sql;
 
 # Всё остальное делаем от имени нашего администратора
 PGPASSWORD=$ADMINPASSWD
-export PGPASSWORD
+export PGPASSWORD;
 
+$SQL roles.sql;
 $SQL json.sql;
 $SQL tools.sql;
 $SQL test.sql;
@@ -65,6 +69,6 @@ $SQL obj.sql;
 $SQL public.sql;
 
 PGPASSWORD=
-export PGPASSWORD
+export PGPASSWORD;
 
-cd $CUR_PATH
+cd $CUR_PATH;
