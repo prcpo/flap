@@ -85,10 +85,6 @@ COMMENT ON COLUMN settings.code IS 'Код настройки';
 COMMENT ON COLUMN settings.company IS 'Организация';
 COMMENT ON COLUMN settings."user" IS 'Пользователь';
 COMMENT ON COLUMN settings.val IS 'Значение';
-INSERT INTO settings (code, company, "user", val) VALUES ('work.date', '00000000-0000-0000-0000-000000000000', 'oper', '12.12.12');
-INSERT INTO settings (code, company, "user", val) VALUES ('work.date', '00000000-0000-0000-0000-000000000000', 'admin', '01.01.13');
-INSERT INTO settings (code, company, "user", val) VALUES ('work.date', '00000000-0000-0000-0000-000000000000', 'postgres', '03.01.13');
-INSERT INTO settings (code, company, "user", val) VALUES ('company.name', '00000000-0000-0000-0000-000000000000', NULL, 'Организация 1');
 CREATE INDEX fki_settings_code ON settings USING btree (code);
 CREATE TRIGGER tbui_settings BEFORE INSERT OR UPDATE OF code, "user", company ON settings FOR EACH ROW EXECUTE PROCEDURE tfc_settings();
 ALTER TABLE ONLY settings

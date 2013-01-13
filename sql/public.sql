@@ -4,12 +4,35 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET search_path = public, pg_catalog;
+CREATE FUNCTION setting_get(text) RETURNS text
+    LANGUAGE sql SECURITY DEFINER
+    AS $_$select set.get($1::ltree)$_$;
+COMMENT ON FUNCTION setting_get(text) IS 'Возвращает значение пользовательской переменой.
+Параметр - код переменной из def.settings
+Возвращаемое значение - текст.';
+CREATE FUNCTION setting_set(text, anyelement) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    AS $_$select set.set($1::ltree, $2::text)$_$;
+COMMENT ON FUNCTION setting_set(text, anyelement) IS 'Устанавливает значение пользовательской переменой.
+Первый параметр - код переменной из def.settings
+Второй - значение. Значение может быть любого типа, оно автоматически преобразуется в текст.
+Возвращает TRUE, если успешно. Иначе - FALSE.';
 CREATE VIEW companies AS
     SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("current_user"())::text));
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
+REVOKE ALL ON FUNCTION setting_get(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION setting_get(text) FROM admin;
+GRANT ALL ON FUNCTION setting_get(text) TO admin;
+GRANT ALL ON FUNCTION setting_get(text) TO PUBLIC;
+GRANT ALL ON FUNCTION setting_get(text) TO accuser;
+REVOKE ALL ON FUNCTION setting_set(text, anyelement) FROM PUBLIC;
+REVOKE ALL ON FUNCTION setting_set(text, anyelement) FROM admin;
+GRANT ALL ON FUNCTION setting_set(text, anyelement) TO admin;
+GRANT ALL ON FUNCTION setting_set(text, anyelement) TO PUBLIC;
+GRANT ALL ON FUNCTION setting_set(text, anyelement) TO accuser;
 REVOKE ALL ON TABLE companies FROM PUBLIC;
 REVOKE ALL ON TABLE companies FROM admin;
 GRANT ALL ON TABLE companies TO admin;
