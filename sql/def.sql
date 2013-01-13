@@ -2,9 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.2.1
--- Dumped by pg_dump version 9.2.1
--- Started on 2012-11-30 10:10:25 OMST
+-- Dumped from database version 9.2.2
+-- Dumped by pg_dump version 9.2.2
+-- Started on 2013-01-13 20:28:22 NOVT
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -13,7 +13,7 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- TOC entry 12 (class 2615 OID 25717)
+-- TOC entry 12 (class 2615 OID 19307)
 -- Name: def; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -21,7 +21,7 @@ CREATE SCHEMA def;
 
 
 --
--- TOC entry 2174 (class 0 OID 0)
+-- TOC entry 2185 (class 0 OID 0)
 -- Dependencies: 12
 -- Name: SCHEMA def; Type: COMMENT; Schema: -; Owner: -
 --
@@ -31,11 +31,55 @@ COMMENT ON SCHEMA def IS 'Определения объектов, справо�
 
 SET search_path = def, pg_catalog;
 
+--
+-- TOC entry 284 (class 1255 OID 19388)
+-- Name: settings_company(ext.ltree); Type: FUNCTION; Schema: def; Owner: -
+--
+
+CREATE FUNCTION settings_company(_code ext.ltree) RETURNS uuid
+    LANGUAGE sql
+    AS $_$select iif(iscompany, sec.company_get(), null) 
+from def.settings
+where code = $1;$_$;
+
+
+--
+-- TOC entry 2186 (class 0 OID 0)
+-- Dependencies: 284
+-- Name: FUNCTION settings_company(_code ext.ltree); Type: COMMENT; Schema: def; Owner: -
+--
+
+COMMENT ON FUNCTION settings_company(_code ext.ltree) IS 'Возвращает организацию для параметра';
+
+
+--
+-- TOC entry 285 (class 1255 OID 19389)
+-- Name: settings_user(ext.ltree); Type: FUNCTION; Schema: def; Owner: -
+--
+
+CREATE FUNCTION settings_user(_user ext.ltree) RETURNS text
+    LANGUAGE sql
+    AS $_$select iif(isuser, current_user::text, null::text)
+from def.settings
+where code = $1;$_$;
+
+
+--
+-- TOC entry 2187 (class 0 OID 0)
+-- Dependencies: 285
+-- Name: FUNCTION settings_user(_user ext.ltree); Type: COMMENT; Schema: def; Owner: -
+--
+
+COMMENT ON FUNCTION settings_user(_user ext.ltree) IS 'Возвращает пользователя параметра';
+
+
+SET default_tablespace = '';
+
 SET default_with_oids = false;
 
 --
--- TOC entry 181 (class 1259 OID 25718)
--- Name: types; Type: TABLE; Schema: def; Owner: -
+-- TOC entry 180 (class 1259 OID 19308)
+-- Name: types; Type: TABLE; Schema: def; Owner: -; Tablespace: 
 --
 
 CREATE TABLE types (
@@ -46,8 +90,8 @@ CREATE TABLE types (
 
 
 --
--- TOC entry 2175 (class 0 OID 0)
--- Dependencies: 181
+-- TOC entry 2188 (class 0 OID 0)
+-- Dependencies: 180
 -- Name: TABLE types; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -63,8 +107,8 @@ fld - типы полей.
 
 
 --
--- TOC entry 2176 (class 0 OID 0)
--- Dependencies: 181
+-- TOC entry 2189 (class 0 OID 0)
+-- Dependencies: 180
 -- Name: COLUMN types.code; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -72,8 +116,8 @@ COMMENT ON COLUMN types.code IS 'Код типа';
 
 
 --
--- TOC entry 2177 (class 0 OID 0)
--- Dependencies: 181
+-- TOC entry 2190 (class 0 OID 0)
+-- Dependencies: 180
 -- Name: COLUMN types.disp; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -81,8 +125,8 @@ COMMENT ON COLUMN types.disp IS 'Отображаемое имя';
 
 
 --
--- TOC entry 2178 (class 0 OID 0)
--- Dependencies: 181
+-- TOC entry 2191 (class 0 OID 0)
+-- Dependencies: 180
 -- Name: COLUMN types.note; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -90,7 +134,7 @@ COMMENT ON COLUMN types.note IS 'Описание типа';
 
 
 --
--- TOC entry 183 (class 1259 OID 36356)
+-- TOC entry 181 (class 1259 OID 19314)
 -- Name: navtree; Type: VIEW; Schema: def; Owner: -
 --
 
@@ -99,8 +143,8 @@ CREATE VIEW navtree AS
 
 
 --
--- TOC entry 182 (class 1259 OID 25778)
--- Name: requisites; Type: TABLE; Schema: def; Owner: -
+-- TOC entry 182 (class 1259 OID 19318)
+-- Name: requisites; Type: TABLE; Schema: def; Owner: -; Tablespace: 
 --
 
 CREATE TABLE requisites (
@@ -115,7 +159,7 @@ CREATE TABLE requisites (
 
 
 --
--- TOC entry 2179 (class 0 OID 0)
+-- TOC entry 2192 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: TABLE requisites; Type: COMMENT; Schema: def; Owner: -
 --
@@ -124,7 +168,7 @@ COMMENT ON TABLE requisites IS 'Описания реквизитов объек
 
 
 --
--- TOC entry 2180 (class 0 OID 0)
+-- TOC entry 2193 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: COLUMN requisites.parent; Type: COMMENT; Schema: def; Owner: -
 --
@@ -133,7 +177,7 @@ COMMENT ON COLUMN requisites.parent IS 'Тип объекта, которому 
 
 
 --
--- TOC entry 2181 (class 0 OID 0)
+-- TOC entry 2194 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: COLUMN requisites.code; Type: COMMENT; Schema: def; Owner: -
 --
@@ -142,7 +186,7 @@ COMMENT ON COLUMN requisites.code IS 'Код реквизита';
 
 
 --
--- TOC entry 2182 (class 0 OID 0)
+-- TOC entry 2195 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: COLUMN requisites.seq; Type: COMMENT; Schema: def; Owner: -
 --
@@ -151,7 +195,7 @@ COMMENT ON COLUMN requisites.seq IS 'Порядок отображения по 
 
 
 --
--- TOC entry 2183 (class 0 OID 0)
+-- TOC entry 2196 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: COLUMN requisites.type; Type: COMMENT; Schema: def; Owner: -
 --
@@ -160,7 +204,7 @@ COMMENT ON COLUMN requisites.type IS 'Тип';
 
 
 --
--- TOC entry 2184 (class 0 OID 0)
+-- TOC entry 2197 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: COLUMN requisites.disp; Type: COMMENT; Schema: def; Owner: -
 --
@@ -169,7 +213,7 @@ COMMENT ON COLUMN requisites.disp IS 'Отображаемое имя';
 
 
 --
--- TOC entry 2185 (class 0 OID 0)
+-- TOC entry 2198 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: COLUMN requisites.isarray; Type: COMMENT; Schema: def; Owner: -
 --
@@ -178,7 +222,7 @@ COMMENT ON COLUMN requisites.isarray IS 'Является массивом';
 
 
 --
--- TOC entry 2186 (class 0 OID 0)
+-- TOC entry 2199 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: COLUMN requisites.ishistory; Type: COMMENT; Schema: def; Owner: -
 --
@@ -187,8 +231,8 @@ COMMENT ON COLUMN requisites.ishistory IS 'Хранить историю изм�
 
 
 --
--- TOC entry 184 (class 1259 OID 36378)
--- Name: settings; Type: TABLE; Schema: def; Owner: -
+-- TOC entry 183 (class 1259 OID 19326)
+-- Name: settings; Type: TABLE; Schema: def; Owner: -; Tablespace: 
 --
 
 CREATE TABLE settings (
@@ -205,8 +249,8 @@ CREATE TABLE settings (
 
 
 --
--- TOC entry 2187 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2200 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: TABLE settings; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -214,8 +258,8 @@ COMMENT ON TABLE settings IS 'Определения настроек';
 
 
 --
--- TOC entry 2188 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2201 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: COLUMN settings.code; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -223,8 +267,8 @@ COMMENT ON COLUMN settings.code IS 'Код настройки';
 
 
 --
--- TOC entry 2189 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2202 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: COLUMN settings.disp; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -232,8 +276,8 @@ COMMENT ON COLUMN settings.disp IS 'Отображаемое наименова�
 
 
 --
--- TOC entry 2190 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2203 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: COLUMN settings.note; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -241,8 +285,8 @@ COMMENT ON COLUMN settings.note IS 'Пояснения';
 
 
 --
--- TOC entry 2191 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2204 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: COLUMN settings.default_value; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -250,8 +294,8 @@ COMMENT ON COLUMN settings.default_value IS 'Значение по умолча�
 
 
 --
--- TOC entry 2192 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2205 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: COLUMN settings.isuser; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -259,8 +303,8 @@ COMMENT ON COLUMN settings.isuser IS 'Может быть индивидуаль
 
 
 --
--- TOC entry 2193 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2206 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: COLUMN settings.iscompany; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -268,8 +312,8 @@ COMMENT ON COLUMN settings.iscompany IS 'Может быть индивидуа�
 
 
 --
--- TOC entry 2194 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2207 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: COLUMN settings.ishistory; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -277,8 +321,8 @@ COMMENT ON COLUMN settings.ishistory IS 'Сохранять значения, д
 
 
 --
--- TOC entry 2195 (class 0 OID 0)
--- Dependencies: 184
+-- TOC entry 2208 (class 0 OID 0)
+-- Dependencies: 183
 -- Name: COLUMN settings.val; Type: COMMENT; Schema: def; Owner: -
 --
 
@@ -286,7 +330,7 @@ COMMENT ON COLUMN settings.val IS 'Значение настройки';
 
 
 --
--- TOC entry 2168 (class 0 OID 25778)
+-- TOC entry 2179 (class 0 OID 19318)
 -- Dependencies: 182
 -- Data for Name: requisites; Type: TABLE DATA; Schema: def; Owner: -
 --
@@ -314,8 +358,8 @@ INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUE
 
 
 --
--- TOC entry 2169 (class 0 OID 36378)
--- Dependencies: 184
+-- TOC entry 2180 (class 0 OID 19326)
+-- Dependencies: 183
 -- Data for Name: settings; Type: TABLE DATA; Schema: def; Owner: -
 --
 
@@ -328,8 +372,8 @@ INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishist
 
 
 --
--- TOC entry 2167 (class 0 OID 25718)
--- Dependencies: 181
+-- TOC entry 2178 (class 0 OID 19308)
+-- Dependencies: 180
 -- Data for Name: types; Type: TABLE DATA; Schema: def; Owner: -
 --
 
@@ -353,8 +397,8 @@ INSERT INTO types (code, disp, note) VALUES ('act.print', 'Печать', NULL);
 
 
 --
--- TOC entry 2160 (class 2606 OID 25785)
--- Name: pk_requisites; Type: CONSTRAINT; Schema: def; Owner: -
+-- TOC entry 2171 (class 2606 OID 19336)
+-- Name: pk_requisites; Type: CONSTRAINT; Schema: def; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY requisites
@@ -362,8 +406,8 @@ ALTER TABLE ONLY requisites
 
 
 --
--- TOC entry 2163 (class 2606 OID 36385)
--- Name: pk_settings; Type: CONSTRAINT; Schema: def; Owner: -
+-- TOC entry 2174 (class 2606 OID 19338)
+-- Name: pk_settings; Type: CONSTRAINT; Schema: def; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY settings
@@ -371,8 +415,8 @@ ALTER TABLE ONLY settings
 
 
 --
--- TOC entry 2156 (class 2606 OID 25725)
--- Name: pk_types; Type: CONSTRAINT; Schema: def; Owner: -
+-- TOC entry 2167 (class 2606 OID 19340)
+-- Name: pk_types; Type: CONSTRAINT; Schema: def; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY types
@@ -380,31 +424,31 @@ ALTER TABLE ONLY types
 
 
 --
--- TOC entry 2161 (class 1259 OID 36395)
--- Name: fki_settings; Type: INDEX; Schema: def; Owner: -
+-- TOC entry 2172 (class 1259 OID 19341)
+-- Name: fki_settings; Type: INDEX; Schema: def; Owner: -; Tablespace: 
 --
 
 CREATE INDEX fki_settings ON settings USING btree (type);
 
 
 --
--- TOC entry 2157 (class 1259 OID 25796)
--- Name: fki_structures_parent; Type: INDEX; Schema: def; Owner: -
+-- TOC entry 2168 (class 1259 OID 19342)
+-- Name: fki_structures_parent; Type: INDEX; Schema: def; Owner: -; Tablespace: 
 --
 
 CREATE INDEX fki_structures_parent ON requisites USING btree (parent);
 
 
 --
--- TOC entry 2158 (class 1259 OID 25797)
--- Name: fki_structures_type; Type: INDEX; Schema: def; Owner: -
+-- TOC entry 2169 (class 1259 OID 19343)
+-- Name: fki_structures_type; Type: INDEX; Schema: def; Owner: -; Tablespace: 
 --
 
 CREATE INDEX fki_structures_type ON requisites USING btree (type);
 
 
 --
--- TOC entry 2166 (class 2606 OID 36396)
+-- TOC entry 2177 (class 2606 OID 19344)
 -- Name: fk_settings; Type: FK CONSTRAINT; Schema: def; Owner: -
 --
 
@@ -413,7 +457,7 @@ ALTER TABLE ONLY settings
 
 
 --
--- TOC entry 2164 (class 2606 OID 25786)
+-- TOC entry 2175 (class 2606 OID 19349)
 -- Name: fk_structures_parent; Type: FK CONSTRAINT; Schema: def; Owner: -
 --
 
@@ -422,7 +466,7 @@ ALTER TABLE ONLY requisites
 
 
 --
--- TOC entry 2165 (class 2606 OID 25791)
+-- TOC entry 2176 (class 2606 OID 19354)
 -- Name: fk_structures_type; Type: FK CONSTRAINT; Schema: def; Owner: -
 --
 
@@ -430,7 +474,7 @@ ALTER TABLE ONLY requisites
     ADD CONSTRAINT fk_structures_type FOREIGN KEY (type) REFERENCES types(code) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
--- Completed on 2012-11-30 10:10:25 OMST
+-- Completed on 2013-01-13 20:28:22 NOVT
 
 --
 -- PostgreSQL database dump complete

@@ -2,9 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.2.1
--- Dumped by pg_dump version 9.2.1
--- Started on 2012-11-23 12:02:11 OMST
+-- Dumped from database version 9.2.2
+-- Dumped by pg_dump version 9.2.2
+-- Started on 2013-01-13 20:26:34 NOVT
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -13,7 +13,7 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- TOC entry 10 (class 2615 OID 25642)
+-- TOC entry 10 (class 2615 OID 19257)
 -- Name: test; Type: SCHEMA; Schema: -; Owner: -
 --
 
@@ -21,7 +21,7 @@ CREATE SCHEMA test;
 
 
 --
--- TOC entry 2143 (class 0 OID 0)
+-- TOC entry 2170 (class 0 OID 0)
 -- Dependencies: 10
 -- Name: SCHEMA test; Type: COMMENT; Schema: -; Owner: -
 --
@@ -32,7 +32,7 @@ COMMENT ON SCHEMA test IS 'Тесты';
 SET search_path = test, pg_catalog;
 
 --
--- TOC entry 272 (class 1255 OID 25686)
+-- TOC entry 278 (class 1255 OID 19258)
 -- Name: do(ext.lquery, boolean); Type: FUNCTION; Schema: test; Owner: -
 --
 
@@ -52,8 +52,8 @@ end;$_$;
 
 
 --
--- TOC entry 2144 (class 0 OID 0)
--- Dependencies: 272
+-- TOC entry 2171 (class 0 OID 0)
+-- Dependencies: 278
 -- Name: FUNCTION "do"(_lquery ext.lquery, _erase_results boolean); Type: COMMENT; Schema: test; Owner: -
 --
 
@@ -61,7 +61,7 @@ COMMENT ON FUNCTION "do"(_lquery ext.lquery, _erase_results boolean) IS 'Зап�
 
 
 --
--- TOC entry 268 (class 1255 OID 25683)
+-- TOC entry 279 (class 1255 OID 19259)
 -- Name: do_test(ext.ltree); Type: FUNCTION; Schema: test; Owner: -
 --
 
@@ -110,7 +110,7 @@ end;$$;
 
 
 --
--- TOC entry 267 (class 1255 OID 25679)
+-- TOC entry 280 (class 1255 OID 19260)
 -- Name: execute_statement(text); Type: FUNCTION; Schema: test; Owner: -
 --
 
@@ -129,19 +129,21 @@ end;$$;
 
 
 --
--- TOC entry 2145 (class 0 OID 0)
--- Dependencies: 267
+-- TOC entry 2172 (class 0 OID 0)
+-- Dependencies: 280
 -- Name: FUNCTION execute_statement(_statement text, OUT _res text, OUT _err text); Type: COMMENT; Schema: test; Owner: -
 --
 
 COMMENT ON FUNCTION execute_statement(_statement text, OUT _res text, OUT _err text) IS 'Пытается выполнить команду';
 
 
+SET default_tablespace = '';
+
 SET default_with_oids = false;
 
 --
--- TOC entry 176 (class 1259 OID 25651)
--- Name: results; Type: TABLE; Schema: test; Owner: -
+-- TOC entry 176 (class 1259 OID 19261)
+-- Name: results; Type: TABLE; Schema: test; Owner: -; Tablespace: 
 --
 
 CREATE TABLE results (
@@ -156,7 +158,7 @@ CREATE TABLE results (
 
 
 --
--- TOC entry 2146 (class 0 OID 0)
+-- TOC entry 2173 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: TABLE results; Type: COMMENT; Schema: test; Owner: -
 --
@@ -165,7 +167,7 @@ COMMENT ON TABLE results IS 'Результаты тестов';
 
 
 --
--- TOC entry 2147 (class 0 OID 0)
+-- TOC entry 2174 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN results.dt; Type: COMMENT; Schema: test; Owner: -
 --
@@ -174,7 +176,7 @@ COMMENT ON COLUMN results.dt IS 'Дата и время теста';
 
 
 --
--- TOC entry 2148 (class 0 OID 0)
+-- TOC entry 2175 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN results.test; Type: COMMENT; Schema: test; Owner: -
 --
@@ -183,7 +185,7 @@ COMMENT ON COLUMN results.test IS 'Код теста';
 
 
 --
--- TOC entry 2149 (class 0 OID 0)
+-- TOC entry 2176 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN results.result; Type: COMMENT; Schema: test; Owner: -
 --
@@ -192,7 +194,7 @@ COMMENT ON COLUMN results.result IS 'Результат выполнения т�
 
 
 --
--- TOC entry 2150 (class 0 OID 0)
+-- TOC entry 2177 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN results.notes; Type: COMMENT; Schema: test; Owner: -
 --
@@ -201,7 +203,7 @@ COMMENT ON COLUMN results.notes IS 'Примечания, вывод сообщ�
 
 
 --
--- TOC entry 2151 (class 0 OID 0)
+-- TOC entry 2178 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN results.passed; Type: COMMENT; Schema: test; Owner: -
 --
@@ -210,7 +212,7 @@ COMMENT ON COLUMN results.passed IS 'Тест пройден успешно';
 
 
 --
--- TOC entry 2152 (class 0 OID 0)
+-- TOC entry 2179 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN results.ms; Type: COMMENT; Schema: test; Owner: -
 --
@@ -219,8 +221,8 @@ COMMENT ON COLUMN results.ms IS 'Время выполнения запроса,
 
 
 --
--- TOC entry 175 (class 1259 OID 25643)
--- Name: tests; Type: TABLE; Schema: test; Owner: -
+-- TOC entry 177 (class 1259 OID 19268)
+-- Name: tests; Type: TABLE; Schema: test; Owner: -; Tablespace: 
 --
 
 CREATE TABLE tests (
@@ -231,8 +233,8 @@ CREATE TABLE tests (
 
 
 --
--- TOC entry 2153 (class 0 OID 0)
--- Dependencies: 175
+-- TOC entry 2180 (class 0 OID 0)
+-- Dependencies: 177
 -- Name: TABLE tests; Type: COMMENT; Schema: test; Owner: -
 --
 
@@ -240,8 +242,8 @@ COMMENT ON TABLE tests IS 'Тесты';
 
 
 --
--- TOC entry 2154 (class 0 OID 0)
--- Dependencies: 175
+-- TOC entry 2181 (class 0 OID 0)
+-- Dependencies: 177
 -- Name: COLUMN tests.tree; Type: COMMENT; Schema: test; Owner: -
 --
 
@@ -249,8 +251,8 @@ COMMENT ON COLUMN tests.tree IS 'Код теста';
 
 
 --
--- TOC entry 2155 (class 0 OID 0)
--- Dependencies: 175
+-- TOC entry 2182 (class 0 OID 0)
+-- Dependencies: 177
 -- Name: COLUMN tests.command; Type: COMMENT; Schema: test; Owner: -
 --
 
@@ -258,8 +260,8 @@ COMMENT ON COLUMN tests.command IS 'Команда';
 
 
 --
--- TOC entry 2156 (class 0 OID 0)
--- Dependencies: 175
+-- TOC entry 2183 (class 0 OID 0)
+-- Dependencies: 177
 -- Name: COLUMN tests.result; Type: COMMENT; Schema: test; Owner: -
 --
 
@@ -267,24 +269,25 @@ COMMENT ON COLUMN tests.result IS 'Ожидаемый результат';
 
 
 --
--- TOC entry 2138 (class 0 OID 25651)
+-- TOC entry 2164 (class 0 OID 19261)
 -- Dependencies: 176
 -- Data for Name: results; Type: TABLE DATA; Schema: test; Owner: -
 --
 
 
+
 --
--- TOC entry 2137 (class 0 OID 25643)
--- Dependencies: 175
+-- TOC entry 2165 (class 0 OID 19268)
+-- Dependencies: 177
 -- Data for Name: tests; Type: TABLE DATA; Schema: test; Owner: -
 --
 
-INSERT INTO tests VALUES ('sec.010.company_add', 'sec.company_add(''<<<test company>>>'')::text || ''''', '');
+INSERT INTO tests (tree, command, result) VALUES ('sec.010.company_add', 'sec.company_add(''<<<test company>>>'')::text || ''''', '');
 
 
 --
--- TOC entry 2136 (class 2606 OID 25671)
--- Name: pk_results; Type: CONSTRAINT; Schema: test; Owner: -
+-- TOC entry 2161 (class 2606 OID 19275)
+-- Name: pk_results; Type: CONSTRAINT; Schema: test; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY results
@@ -292,15 +295,15 @@ ALTER TABLE ONLY results
 
 
 --
--- TOC entry 2134 (class 2606 OID 25650)
--- Name: pk_tests; Type: CONSTRAINT; Schema: test; Owner: -
+-- TOC entry 2163 (class 2606 OID 19277)
+-- Name: pk_tests; Type: CONSTRAINT; Schema: test; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY tests
     ADD CONSTRAINT pk_tests PRIMARY KEY (tree);
 
 
--- Completed on 2012-11-23 12:02:11 OMST
+-- Completed on 2013-01-13 20:26:34 NOVT
 
 --
 -- PostgreSQL database dump complete
