@@ -15,7 +15,7 @@ begin
 		delete from test.results;
 	end if;
 	select array (
-		select test.do_test(tree) from test.tests where tree ~ $1
+		select test.do_test(tree) from def.tests where tree ~ $1
 		) into _res;
 	return true;
 end;$_$;
@@ -35,7 +35,7 @@ begin
 	_tm_e = _tm_b;
 	insert into test.results (dt, test)
 		values (_tm_b, _code);
-	select command, result from test.tests where tree = _code into _command, _estimate;
+	select command, result from def.tests where tree = _code into _command, _estimate;
 	if _command is null then
 		_err = 'Test "' || _code::text || '" is not found in table "test.tests"';
 	ELSE
@@ -91,17 +91,5 @@ COMMENT ON COLUMN results.result IS 'Результат выполнения т�
 COMMENT ON COLUMN results.notes IS 'Примечания, вывод сообщений об ошибках';
 COMMENT ON COLUMN results.passed IS 'Тест пройден успешно';
 COMMENT ON COLUMN results.ms IS 'Время выполнения запроса, мс.';
-CREATE TABLE tests (
-    tree ext.ltree NOT NULL,
-    command text NOT NULL,
-    result text
-);
-COMMENT ON TABLE tests IS 'Тесты';
-COMMENT ON COLUMN tests.tree IS 'Код теста';
-COMMENT ON COLUMN tests.command IS 'Команда';
-COMMENT ON COLUMN tests.result IS 'Ожидаемый результат';
-INSERT INTO tests (tree, command, result) VALUES ('sec.010.company_add', 'sec.company_add(''<<<test company>>>'')::text || ''''', '');
 ALTER TABLE ONLY results
     ADD CONSTRAINT pk_results PRIMARY KEY (dt, test);
-ALTER TABLE ONLY tests
-    ADD CONSTRAINT pk_tests PRIMARY KEY (tree);

@@ -7,6 +7,6 @@
 ./dump_schema.sh public -s;
 ./dump_schema.sh sec;
 ./dump_schema.sh set -s;
-./dump_schema.sh test;
+./dump_schema.sh test -s;
 ./dump_schema.sh tools -s;
 

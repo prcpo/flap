@@ -74,6 +74,15 @@ COMMENT ON COLUMN settings.isuser IS 'Может быть индивидуаль
 COMMENT ON COLUMN settings.iscompany IS 'Может быть индивидуальной для каждой организации';
 COMMENT ON COLUMN settings.ishistory IS 'Сохранять значения, действующие в разные периоды времени';
 COMMENT ON COLUMN settings.val IS 'Значение настройки';
+CREATE TABLE tests (
+    tree ext.ltree NOT NULL,
+    command text NOT NULL,
+    result text
+);
+COMMENT ON TABLE tests IS 'Тесты';
+COMMENT ON COLUMN tests.tree IS 'Код теста';
+COMMENT ON COLUMN tests.command IS 'Команда';
+COMMENT ON COLUMN tests.result IS 'Ожидаемый результат';
 INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUES ('doc.pay', 'num', 1, 'fld.num', 'Номер', false, false);
 INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUES ('doc.pay', 'date', 2, 'fld.date', 'Дата', false, false);
 INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUES ('doc.pay', 'sm', 3, 'fld.money', 'Сумма', false, false);
@@ -121,6 +130,8 @@ ALTER TABLE ONLY requisites
     ADD CONSTRAINT pk_requisites PRIMARY KEY (parent, code);
 ALTER TABLE ONLY settings
     ADD CONSTRAINT pk_settings PRIMARY KEY (code);
+ALTER TABLE ONLY tests
+    ADD CONSTRAINT pk_tests PRIMARY KEY (tree);
 ALTER TABLE ONLY types
     ADD CONSTRAINT pk_types PRIMARY KEY (code);
 CREATE INDEX fki_settings ON settings USING btree (type);
