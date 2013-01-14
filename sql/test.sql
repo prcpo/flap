@@ -29,25 +29,30 @@ CREATE FUNCTION do_test(_code ext.ltree) RETURNS boolean
   _estimate text;
   _tm_b timestamp;
   _tm_e timestamp;
+  _passed boolean;
 begin
 	_res = null;
-	_tm_b = now();
-	_tm_e = _tm_b;
+	_passed = false;
 	insert into test.results (dt, test)
-		values (_tm_b, _code);
+		values (now(), _code);
 	select command, result from def.tests where tree = _code into _command, _estimate;
 	if _command is null then
 		_err = 'Test "' || _code::text || '" is not found in table "test.tests"';
 	ELSE
 		begin
-		  _tm_b = now();
-			select * FROM test.execute_statement('select ' || _command) INTO _res, _err;
-			_tm_e = now();
+		  _tm_b = clock_timestamp();
+		  _tm_e = _tm_b;
+			select * FROM tools.execute_statement('select ' || _command) INTO _res, _err;
+			_tm_e = clock_timestamp();
 			raise notice '.res = %', _res;
 			raise notice '.err = %', _err;
 		EXCEPTION WHEN OTHERS THEN
 			_err = SQLERRM;
 		end;
+	end if;
+	_passed = (COALESCE(_res,'---') = _estimate);
+	if (not _passed) and (_estimate = 'f') then 
+		_passed = true; 
 	end if;
 	update test.results
 		set notes = _err,
@@ -55,24 +60,11 @@ begin
 		ms = EXTRACT(MILLISECONDS FROM (_tm_e - _tm_b)),
 		dt = _tm_b,
 		tm = _tm_e,
-		passed = (_res = _estimate)
-		where dt = _tm_b
+		passed = _passed
+		where dt = now()
 		and test::text = _code::text;
-	RETURN _res = _estimate;
+	RETURN _res = _estimate AND _err IS NULL;
 end;$$;
-CREATE FUNCTION execute_statement(_statement text, OUT _res text, OUT _err text) RETURNS record
-    LANGUAGE plpgsql
-    AS $$begin
-  Raise notice 'Try: %', _statement;
-	begin
-		execute _statement into _res;
-		Raise notice ' >: %', _res;
-	EXCEPTION WHEN OTHERS THEN
-		_err = _err || SQLERRM;
-		Raise notice ' error: %', _err;
-	end;
-end;$$;
-COMMENT ON FUNCTION execute_statement(_statement text, OUT _res text, OUT _err text) IS 'Пытается выполнить команду';
 SET default_tablespace = '';
 SET default_with_oids = false;
 CREATE TABLE results (

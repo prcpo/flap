@@ -109,6 +109,11 @@ INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishist
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('name', 'Наименование платформы', NULL, 'Учётная платформа FLAP', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('note', 'Описание', NULL, 'Свежую версию вы можете взять на https://github.com/prcpo/flap', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('version', 'Версия платформы', NULL, '12.11', false, false, false, NULL, NULL);
+INSERT INTO tests (tree, command, result) VALUES ('settings.02.set', 'setting_set(''work.date'',''02.01.12''::text)::text', 't');
+INSERT INTO tests (tree, command, result) VALUES ('settings.12.get', 'setting_get(''work.date )', '02.01.12');
+INSERT INTO tests (tree, command, result) VALUES ('settings.01.set', 'setting_set(''work.date'',''01.01.12'')::text', 'f');
+INSERT INTO tests (tree, command, result) VALUES ('settings.03.set', 'setting_set(''work_date'',''03.01.12''::text)::text', 'f');
+INSERT INTO tests (tree, command, result) VALUES ('settings.11.get', 'setting_get(''work_date'')', 'f');
 INSERT INTO types (code, disp, note) VALUES ('dic', 'Справочник', NULL);
 INSERT INTO types (code, disp, note) VALUES ('doc', 'Документ', NULL);
 INSERT INTO types (code, disp, note) VALUES ('dic.agent', 'Контрагент', NULL);

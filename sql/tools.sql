@@ -6,6 +6,19 @@ SET client_min_messages = warning;
 CREATE SCHEMA tools;
 COMMENT ON SCHEMA tools IS 'Всякие нужные функции';
 SET search_path = tools, pg_catalog;
+CREATE FUNCTION execute_statement(_statement text, OUT _res text, OUT _err text) RETURNS record
+    LANGUAGE plpgsql
+    AS $$begin
+  Raise notice 'Try: %', _statement;
+	begin
+		execute _statement into _res;
+		Raise notice ' >: %', _res;
+	EXCEPTION WHEN OTHERS THEN
+		_err = COALESCE(_err,'') || SQLERRM;
+		Raise notice ' error: %', _err;
+	end;
+end;$$;
+COMMENT ON FUNCTION execute_statement(_statement text, OUT _res text, OUT _err text) IS 'Пытается выполнить команду';
 CREATE FUNCTION iif(_condition boolean, _res1 anyelement, _res2 anyelement) RETURNS anyelement
     LANGUAGE sql
     AS $$select 
