@@ -51,7 +51,7 @@ begin
 		end;
 	end if;
 	_passed = (COALESCE(_res,'---') = _estimate);
-	if (not _passed) and (_estimate = 'f') then 
+	if (not _passed) and (_estimate = 'false') then 
 		_passed = true; 
 	end if;
 	update test.results
