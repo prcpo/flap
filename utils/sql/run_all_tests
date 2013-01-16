@@ -1,0 +1,9 @@
+﻿delete from test.results;
+--
+select test.do_test(tree) from
+(select tree from def.tests
+where tree <@ ''
+order by tree) s;
+
+-- 
+select * from test.results;

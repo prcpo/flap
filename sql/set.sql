@@ -85,6 +85,8 @@ COMMENT ON COLUMN settings.code IS 'Код настройки';
 COMMENT ON COLUMN settings.company IS 'Организация';
 COMMENT ON COLUMN settings."user" IS 'Пользователь';
 COMMENT ON COLUMN settings.val IS 'Значение';
+ALTER TABLE ONLY settings
+    ADD CONSTRAINT uk_settings_code UNIQUE (code, company, "user");
 CREATE INDEX fki_settings_code ON settings USING btree (code);
 CREATE TRIGGER tbui_settings BEFORE INSERT OR UPDATE OF code, "user", company ON settings FOR EACH ROW EXECUTE PROCEDURE tfc_settings();
 ALTER TABLE ONLY settings
