@@ -6,9 +6,15 @@ SET client_min_messages = warning;
 CREATE SCHEMA def;
 COMMENT ON SCHEMA def IS 'Определения объектов, справочников, действий, правил и т.д.';
 SET search_path = def, pg_catalog;
+CREATE FUNCTION company_get() RETURNS uuid
+    LANGUAGE sql
+    AS $$select val::uuid 
+from settings 
+where code = 'work.company';$$;
+COMMENT ON FUNCTION company_get() IS 'Возвращает тескущую организацию';
 CREATE FUNCTION settings_company(_code ext.ltree) RETURNS uuid
     LANGUAGE sql
-    AS $_$select iif(iscompany, sec.company_get(), null) 
+    AS $_$select iif(iscompany, def.company_get(), null) 
 from def.settings
 where code = $1;$_$;
 COMMENT ON FUNCTION settings_company(_code ext.ltree) IS 'Возвращает организацию для параметра';
@@ -109,6 +115,7 @@ INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishist
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('name', 'Наименование платформы', NULL, 'Учётная платформа FLAP', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('note', 'Описание', NULL, 'Свежую версию вы можете взять на https://github.com/prcpo/flap', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('version', 'Версия платформы', NULL, '12.11', false, false, false, NULL, NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.company', 'Организация, с которой работать', NULL, '00000000-0000-0000-0000-000000000000', true, false, false, 'fld.uuid', NULL);
 INSERT INTO tests (tree, command, result) VALUES ('settings.01.set', 'setting_set(''work.date'',''01.01.12'')::text', 'false');
 INSERT INTO tests (tree, command, result) VALUES ('settings.02.set', 'setting_set(''work.date'',''02.01.12''::text)::text', 'true');
 INSERT INTO tests (tree, command, result) VALUES ('settings.03.set', 'setting_set(''work_date'',''03.01.12''::text)::text', 'false');
@@ -131,6 +138,7 @@ INSERT INTO types (code, disp, note) VALUES ('fld.period', 'Период дат'
 INSERT INTO types (code, disp, note) VALUES ('act', 'Действи', NULL);
 INSERT INTO types (code, disp, note) VALUES ('act.open', 'Открыть', NULL);
 INSERT INTO types (code, disp, note) VALUES ('act.print', 'Печать', NULL);
+INSERT INTO types (code, disp, note) VALUES ('fld.uuid', 'UUID', NULL);
 ALTER TABLE ONLY requisites
     ADD CONSTRAINT pk_requisites PRIMARY KEY (parent, code);
 ALTER TABLE ONLY settings

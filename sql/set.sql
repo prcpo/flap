@@ -85,6 +85,9 @@ COMMENT ON COLUMN settings.code IS 'Код настройки';
 COMMENT ON COLUMN settings.company IS 'Организация';
 COMMENT ON COLUMN settings."user" IS 'Пользователь';
 COMMENT ON COLUMN settings.val IS 'Значение';
+CREATE VIEW user_settings AS
+    SELECT settings.code, settings.val FROM settings WHERE ((COALESCE(settings.company, tools.uuid_null()) = COALESCE(def.settings_company(settings.code), tools.uuid_null())) AND (COALESCE(settings."user", ''::text) = COALESCE(def.settings_user(settings.code), ''::text)));
+COMMENT ON VIEW user_settings IS 'Переменные пользователя';
 ALTER TABLE ONLY settings
     ADD CONSTRAINT uk_settings_code UNIQUE (code, company, "user");
 CREATE INDEX fki_settings_code ON settings USING btree (code);

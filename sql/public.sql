@@ -19,6 +19,12 @@ COMMENT ON FUNCTION setting_set(text, anyelement) IS 'Устанавливает
 Возвращает TRUE, если успешно. Иначе - FALSE.';
 CREATE VIEW companies AS
     SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("current_user"())::text));
+CREATE VIEW objects AS
+    SELECT raw.uuid, raw.data FROM obj.raw WHERE (raw.comp = def.company_get());
+COMMENT ON VIEW objects IS 'Объекты системы';
+CREATE VIEW settings AS
+    SELECT d.code, COALESCE(s.val, d.default_value) AS val FROM (def.settings d LEFT JOIN set.user_settings s ON ((s.code OPERATOR(ext.=) d.code)));
+COMMENT ON VIEW settings IS 'Значения переменных';
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
@@ -37,3 +43,11 @@ REVOKE ALL ON TABLE companies FROM PUBLIC;
 REVOKE ALL ON TABLE companies FROM admin;
 GRANT ALL ON TABLE companies TO admin;
 GRANT SELECT ON TABLE companies TO accuser;
+REVOKE ALL ON TABLE objects FROM PUBLIC;
+REVOKE ALL ON TABLE objects FROM admin;
+GRANT ALL ON TABLE objects TO admin;
+GRANT SELECT,INSERT,DELETE,TRIGGER,UPDATE ON TABLE objects TO accuser;
+REVOKE ALL ON TABLE settings FROM PUBLIC;
+REVOKE ALL ON TABLE settings FROM admin;
+GRANT ALL ON TABLE settings TO admin;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE settings TO accuser;
