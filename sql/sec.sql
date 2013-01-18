@@ -29,7 +29,7 @@ begin
 			if not (_res = uuid_null()) then 
 				exit;
 			end if;
-			__code = _code || ' [' || to_char(clock_timestamp(),'YYMMDD-HH24MISS') || ']';
+			__code = _code || ' [' || session_user || ':' || to_char(clock_timestamp(),'YYMMDD-HH24MISS') || ']';
 		end loop;
 	else	--  второй аргумент = FASE
 		_res = sec.company_add_try(_code);

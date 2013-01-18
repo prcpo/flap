@@ -16,6 +16,10 @@ CREATE FUNCTION company(uuid) RETURNS uuid
 end;$_$;
 COMMENT ON FUNCTION company(uuid) IS 'Устанавливает организацию, для которой ведётся учёт. 
 Возвращает uuid организации.';
+CREATE FUNCTION company_display() RETURNS text
+    LANGUAGE sql
+    AS $$select code from companies where uuid = company();$$;
+COMMENT ON FUNCTION company_display() IS 'Возвращает понятное человеку кодовое имя организации, для которой ведётся учёт';
 CREATE FUNCTION setting(text) RETURNS text
     LANGUAGE sql SECURITY DEFINER
     AS $_$select set.get($1::ltree)$_$;
