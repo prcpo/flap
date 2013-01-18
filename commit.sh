@@ -1,10 +1,10 @@
 #!/bin/bash
 
-COMMENT='$@'
+COMMENT=$@
 
 cd utils
 ./dump_schemas.sh
 
 cd ..
 git add .
-git commit -m $COMMENT
+git commit -m '$COMMENT'
