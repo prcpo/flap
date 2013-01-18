@@ -50,6 +50,7 @@ BEGIN
 	values (_code)
 	returning uuid INTO _uuid;
 	begin
+		RAISE NOTICE 'Try to assign company to user: %', _code || ' -> ' || session_user;
 		insert into sec.users (company)
 		values (_uuid);
 	end;
@@ -96,7 +97,7 @@ COMMENT ON TABLE companies IS 'Учётные записи организаци�
 COMMENT ON COLUMN companies.uuid IS 'Уникальный ID учётной записи организации';
 COMMENT ON COLUMN companies.code IS 'Код учётной записи организации';
 CREATE TABLE users (
-    user_name text DEFAULT "current_user"() NOT NULL,
+    user_name text DEFAULT "session_user"() NOT NULL,
     company uuid NOT NULL
 );
 ALTER TABLE ONLY companies

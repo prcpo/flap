@@ -26,7 +26,7 @@ where code = $1;$_$;
 COMMENT ON FUNCTION settings_company(_code ext.ltree) IS 'Возвращает организацию для параметра';
 CREATE FUNCTION settings_user(_user ext.ltree) RETURNS text
     LANGUAGE sql
-    AS $_$select iif(isuser, current_user::text, null::text)
+    AS $_$select iif(isuser, session_user::text, null::text)
 from def.settings
 where code = $1;$_$;
 COMMENT ON FUNCTION settings_user(_user ext.ltree) IS 'Возвращает пользователя параметра';

@@ -5,11 +5,11 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET search_path = public, pg_catalog;
 CREATE FUNCTION company() RETURNS uuid
-    LANGUAGE sql
+    LANGUAGE sql SECURITY DEFINER
     AS $$select def.company_get();$$;
 COMMENT ON FUNCTION company() IS 'Возвращает uuid организации, для которой ведётся учёт. ';
 CREATE FUNCTION company(uuid) RETURNS uuid
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql SECURITY DEFINER
     AS $_$begin
 	PERFORM def.company_set(COALESCE($1,uuid_null()));
 	return company();
@@ -30,7 +30,7 @@ COMMENT ON FUNCTION setting(text, anyelement) IS 'Устанавливает з�
 Второй - значение. Значение может быть любого типа, оно автоматически преобразуется в текст.
 Возвращает TRUE, если успешно. Иначе - FALSE.';
 CREATE FUNCTION tfc_companies() RETURNS trigger
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql SECURITY DEFINER
     AS $$begin
 	NEW.uuid = sec.company_add(NEW.code, TRUE);
 	select code from sec.companies where uuid = NEW.uuid
@@ -38,7 +38,7 @@ CREATE FUNCTION tfc_companies() RETURNS trigger
 	return NEW;
 end;$$;
 CREATE FUNCTION tfc_settings() RETURNS trigger
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql SECURITY DEFINER
     AS $$begin
 	-- Менять код параметра запрещено
 	NEW.code = OLD.code;
@@ -51,7 +51,7 @@ CREATE FUNCTION tfc_settings() RETURNS trigger
 end;$$;
 COMMENT ON FUNCTION tfc_settings() IS 'Изменяет настройки пользователя';
 CREATE VIEW companies AS
-    SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("current_user"())::text));
+    SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("session_user"())::text));
 COMMENT ON VIEW companies IS 'Список организаций, для которых ведётся учёт';
 CREATE VIEW objects AS
     SELECT raw.uuid, raw.data FROM obj.raw WHERE (raw.comp = company());
@@ -65,6 +65,16 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
+REVOKE ALL ON FUNCTION company() FROM PUBLIC;
+REVOKE ALL ON FUNCTION company() FROM admin;
+GRANT ALL ON FUNCTION company() TO admin;
+GRANT ALL ON FUNCTION company() TO PUBLIC;
+GRANT ALL ON FUNCTION company() TO accuser;
+REVOKE ALL ON FUNCTION company(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION company(uuid) FROM admin;
+GRANT ALL ON FUNCTION company(uuid) TO admin;
+GRANT ALL ON FUNCTION company(uuid) TO PUBLIC;
+GRANT ALL ON FUNCTION company(uuid) TO accuser;
 REVOKE ALL ON FUNCTION setting(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION setting(text) FROM admin;
 GRANT ALL ON FUNCTION setting(text) TO admin;
@@ -75,10 +85,20 @@ REVOKE ALL ON FUNCTION setting(text, anyelement) FROM admin;
 GRANT ALL ON FUNCTION setting(text, anyelement) TO admin;
 GRANT ALL ON FUNCTION setting(text, anyelement) TO PUBLIC;
 GRANT ALL ON FUNCTION setting(text, anyelement) TO accuser;
+REVOKE ALL ON FUNCTION tfc_companies() FROM PUBLIC;
+REVOKE ALL ON FUNCTION tfc_companies() FROM admin;
+GRANT ALL ON FUNCTION tfc_companies() TO admin;
+GRANT ALL ON FUNCTION tfc_companies() TO PUBLIC;
+GRANT ALL ON FUNCTION tfc_companies() TO accuser;
+REVOKE ALL ON FUNCTION tfc_settings() FROM PUBLIC;
+REVOKE ALL ON FUNCTION tfc_settings() FROM admin;
+GRANT ALL ON FUNCTION tfc_settings() TO admin;
+GRANT ALL ON FUNCTION tfc_settings() TO PUBLIC;
+GRANT ALL ON FUNCTION tfc_settings() TO accuser;
 REVOKE ALL ON TABLE companies FROM PUBLIC;
 REVOKE ALL ON TABLE companies FROM admin;
 GRANT ALL ON TABLE companies TO admin;
-GRANT SELECT ON TABLE companies TO accuser;
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE companies TO accuser;
 REVOKE ALL ON TABLE objects FROM PUBLIC;
 REVOKE ALL ON TABLE objects FROM admin;
 GRANT ALL ON TABLE objects TO admin;
