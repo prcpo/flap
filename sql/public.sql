@@ -4,6 +4,22 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET search_path = public, pg_catalog;
+CREATE FUNCTION calculate(_statement text) RETURNS text
+    LANGUAGE plpgsql
+    AS $$declare
+	_res text;
+begin
+	execute 'select ' || _statement into _res;
+	return _res::text;
+end;$$;
+COMMENT ON FUNCTION calculate(_statement text) IS 'Возвращает результат SQL выражения. 
+SQL выражение задаётся без ключевого слова SELECT.
+Результат приводится в текстовый формат.
+SQL выражение не должно возвращать более одного значения. Дополнительные значения игнорируются.
+Примеры:
+date_trunc(''month'', now()) - возвращает дату начала текущего месяца
+code FROM companies WHERE uuid = company() - кодовое название организации, для которой ведётся учёт
+';
 CREATE FUNCTION company() RETURNS uuid
     LANGUAGE sql SECURITY DEFINER
     AS $$select def.company_get();$$;
@@ -36,21 +52,47 @@ COMMENT ON FUNCTION setting(text, anyelement) IS 'Устанавливает з�
 CREATE FUNCTION tfc_companies() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     AS $$begin
-	NEW.uuid = sec.company_add(NEW.code, TRUE);
-	select code from sec.companies where uuid = NEW.uuid
-	into NEW.code;
-	return NEW;
+	if (TG_OP = 'DELETE') then
+		delete from sec.users 
+		where user_name = session_user 
+		and company = OLD.uuid;
+		IF NOT FOUND THEN 
+			RETURN NULL;
+		else
+			RETURN OLD;
+		end if;
+	else
+		if (TG_OP = 'UPDATE') then
+			if not (NEW.uuid = OLD.uuid) then 
+				raise notice 'Менять UUID запрещено';
+				NEW.uuid = OLD.uuid;
+			end if;
+			update sec.companies set code = NEW.code where uuid = OLD.uuid;
+			IF NOT FOUND THEN RETURN NULL; END IF;
+		ELSE -- INSERT
+			NEW.uuid = sec.company_add(NEW.code, TRUE);
+		end if;
+		select code from sec.companies where uuid = NEW.uuid
+		into NEW.code;
+		return NEW;
+	end if;
 end;$$;
+COMMENT ON FUNCTION tfc_companies() IS 'Изменяет перечень организаций учёта';
 CREATE FUNCTION tfc_settings() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     AS $$begin
-	-- Менять код параметра запрещено
-	NEW.code = OLD.code;
-	if set.set(OLD.code, NEW.val) then
-		return NEW;
+	if (TG_OP = 'DELETE') then
+		perform set.set(OLD.code, NULL);
+		return OLD;
 	else
-		RAISE NOTICE 'Значение % не бы установлено.', NEW.val;
-		return NULL;
+		if (TG_OP = 'UPDATE') then
+			if not (NEW.code = OLD.code) then 
+				raise notice 'Менять код параметра запрещено';
+				NEW.code = OLD.code;
+			end if;
+		end if;
+		perform set.set(NEW.code, NEW.val);
+		return NEW;
 	end if;
 end;$$;
 COMMENT ON FUNCTION tfc_settings() IS 'Изменяет настройки пользователя';
@@ -60,11 +102,11 @@ COMMENT ON VIEW companies IS 'Список организаций, для кот
 CREATE VIEW objects AS
     SELECT raw.uuid, raw.data FROM obj.raw WHERE (raw.comp = company());
 COMMENT ON VIEW objects IS 'Объекты системы';
-CREATE VIEW settings AS
-    SELECT d.code, COALESCE(s.val, d.default_value) AS val FROM (def.settings d LEFT JOIN set.user_settings s ON ((s.code OPERATOR(ext.=) d.code)));
+CREATE VIEW settings WITH (security_barrier=false) AS
+    SELECT s.code, CASE WHEN (s.val ~~ '=%'::text) THEN calculate("substring"(s.val, 2)) ELSE s.val END AS val FROM (SELECT d.code, COALESCE(s.val, d.default_value) AS val FROM (def.settings d LEFT JOIN set.user_settings s ON ((s.code OPERATOR(ext.=) d.code)))) s;
 COMMENT ON VIEW settings IS 'Значения переменных';
-CREATE TRIGGER tiu_companies INSTEAD OF INSERT ON companies FOR EACH ROW EXECUTE PROCEDURE tfc_companies();
-CREATE TRIGGER tiu_settings INSTEAD OF UPDATE ON settings FOR EACH ROW EXECUTE PROCEDURE tfc_settings();
+CREATE TRIGGER tiu_settings INSTEAD OF INSERT OR DELETE OR UPDATE ON settings FOR EACH ROW EXECUTE PROCEDURE tfc_settings();
+CREATE TRIGGER tiud_companies INSTEAD OF INSERT OR DELETE OR UPDATE ON companies FOR EACH ROW EXECUTE PROCEDURE tfc_companies();
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;

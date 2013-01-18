@@ -36,21 +36,30 @@ begin
 		raise exception 'Отсутствует параметр с кодом %', _code;
 		return false;
 	end if;
-	begin
-		insert into set.settings (code, val)
-		values (_code, _value);
-	exception
-		when unique_violation then
-			update set.settings
-			set val = _value
-			where code = _code
-			and coalesce(company, uuid_null()) = coalesce(def.settings_company(_code), uuid_null())
-			and coalesce("user",'') = coalesce(def.settings_user(_code), '');
-	end;
+	if _value is NULL then
+		delete from set.settings
+				where code = _code
+				and coalesce(company, uuid_null()) = coalesce(def.settings_company(_code), uuid_null())
+				and coalesce("user",'') = coalesce(def.settings_user(_code), '');
+		IF NOT FOUND THEN RETURN true; END IF;
+	else
+		begin
+			insert into set.settings (code, val)
+			values (_code, _value);
+		exception
+			when unique_violation then
+				update set.settings
+				set val = _value
+				where code = _code
+				and coalesce(company, uuid_null()) = coalesce(def.settings_company(_code), uuid_null())
+				and coalesce("user",'') = coalesce(def.settings_user(_code), '');
+		end;
+	end if;
 	RETURN TRUE;
 end;$$;
 COMMENT ON FUNCTION set(_code ext.ltree, _value text) IS 'Устанавливает значение переменной.
-Возвращает TRUE, если значение успешно установлено';
+Возвращает TRUE, если значение успешно установлено.
+Если второй параметр NULL, то значение пользовательской настройки сбрасывается до значения по умолчанию.';
 CREATE FUNCTION tfc_settings() RETURNS trigger
     LANGUAGE plpgsql
     AS $$begin

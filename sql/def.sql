@@ -19,13 +19,13 @@ from companies
 where uuid = $1;$_$;
 COMMENT ON FUNCTION company_set(uuid) IS 'Устанавливает организацию, учёт которой ведём.';
 CREATE FUNCTION settings_company(_code ext.ltree) RETURNS uuid
-    LANGUAGE sql
+    LANGUAGE sql SECURITY DEFINER
     AS $_$select iif(iscompany, def.company_get(), null) 
 from def.settings
 where code = $1;$_$;
 COMMENT ON FUNCTION settings_company(_code ext.ltree) IS 'Возвращает организацию для параметра';
 CREATE FUNCTION settings_user(_user ext.ltree) RETURNS text
-    LANGUAGE sql
+    LANGUAGE sql SECURITY DEFINER
     AS $_$select iif(isuser, session_user::text, null::text)
 from def.settings
 where code = $1;$_$;
@@ -77,7 +77,11 @@ CREATE TABLE settings (
     type ext.ltree,
     val text
 );
-COMMENT ON TABLE settings IS 'Определения настроек';
+COMMENT ON TABLE settings IS 'Определения настроек.
+Если default_value начинается со знака =, то дальнейшее выражение будет вычислено на SQL (вызвана фунция calculate()).
+Результаты вычислений преобразуются к текстовому формату.
+См. примечание к функции calculate()
+';
 COMMENT ON COLUMN settings.code IS 'Код настройки';
 COMMENT ON COLUMN settings.disp IS 'Отображаемое наименование';
 COMMENT ON COLUMN settings.note IS 'Пояснения';
@@ -116,12 +120,12 @@ INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUE
 INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUES ('dic.bank', 'bic', 1, 'fld.numeric', 'БИК', false, false);
 INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUES ('dic.bank', 'account', 3, 'fld.numeric', 'Коррсчёт', false, true);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('company.name', 'Наименование организации', NULL, 'Моя организация', false, true, false, 'fld.text', NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.period', 'Расчётный период', NULL, NULL, true, true, false, 'fld.date', NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.date', 'Рабочая дата', NULL, NULL, true, true, false, 'fld.period', NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('name', 'Наименование платформы', NULL, 'Учётная платформа FLAP', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('note', 'Описание', NULL, 'Свежую версию вы можете взять на https://github.com/prcpo/flap', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('version', 'Версия платформы', NULL, '12.11', false, false, false, NULL, NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.company', 'Организация, с которой работать', NULL, '00000000-0000-0000-0000-000000000000', true, false, false, 'fld.uuid', NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.company', 'Организация, с которой работать', NULL, '=uuid_null()', true, false, false, 'fld.uuid', NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.date', 'Рабочая дата', NULL, '=now()', true, true, false, 'fld.date', NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.period', 'Расчётный период', NULL, NULL, true, true, false, 'fld.period', NULL);
 INSERT INTO tests (tree, command, result) VALUES ('settings.01.set', 'setting_set(''work.date'',''01.01.12'')::text', 'false');
 INSERT INTO tests (tree, command, result) VALUES ('settings.02.set', 'setting_set(''work.date'',''02.01.12''::text)::text', 'true');
 INSERT INTO tests (tree, command, result) VALUES ('settings.03.set', 'setting_set(''work_date'',''03.01.12''::text)::text', 'false');

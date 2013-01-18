@@ -67,7 +67,7 @@ CREATE FUNCTION company_del(_code text) RETURNS void
 where code = $1;$_$;
 COMMENT ON FUNCTION company_del(_code text) IS 'Удаляет учётную запись организации';
 CREATE FUNCTION tfc_company() RETURNS trigger
-    LANGUAGE plpgsql
+    LANGUAGE plpgsql SECURITY DEFINER
     AS $$begin
 	delete from set.settings
 	where
