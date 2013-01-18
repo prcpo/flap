@@ -12,6 +12,12 @@ CREATE FUNCTION company_get() RETURNS uuid
 from settings 
 where code = 'work.company';$$;
 COMMENT ON FUNCTION company_get() IS 'Возвращает тескущую организацию';
+CREATE FUNCTION company_set(uuid) RETURNS boolean
+    LANGUAGE sql
+    AS $_$select set.set('work.company', uuid::text) 
+from companies
+where uuid = $1;$_$;
+COMMENT ON FUNCTION company_set(uuid) IS 'Устанавливает организацию, учёт которой ведём.';
 CREATE FUNCTION settings_company(_code ext.ltree) RETURNS uuid
     LANGUAGE sql
     AS $_$select iif(iscompany, def.company_get(), null) 

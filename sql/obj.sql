@@ -10,8 +10,8 @@ SET search_path = obj, pg_catalog;
 SET default_tablespace = '';
 SET default_with_oids = false;
 CREATE TABLE raw (
-    uuid uuid NOT NULL,
-    comp uuid,
+    uuid uuid DEFAULT tools.uuid_generate_v4() NOT NULL,
+    comp uuid DEFAULT def.company_get(),
     data json
 );
 COMMENT ON TABLE raw IS 'Ненормализованные данные';

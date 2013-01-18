@@ -99,7 +99,6 @@ CREATE TABLE users (
     user_name text DEFAULT "current_user"() NOT NULL,
     company uuid NOT NULL
 );
-INSERT INTO companies (uuid, code) VALUES ('4032e894-2556-5de5-f9c7-142d72d31604', 'Моя организация [130117-101132]');
 ALTER TABLE ONLY companies
     ADD CONSTRAINT pk_companies PRIMARY KEY (uuid);
 ALTER TABLE ONLY users
