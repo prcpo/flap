@@ -97,9 +97,23 @@ COMMENT ON COLUMN settings.val IS 'Значение';
 CREATE VIEW user_settings AS
     SELECT settings.code, settings.val FROM settings WHERE ((COALESCE(settings.company, tools.uuid_null()) = COALESCE(def.settings_company(settings.code), tools.uuid_null())) AND (COALESCE(settings."user", ''::text) = COALESCE(def.settings_user(settings.code), ''::text)));
 COMMENT ON VIEW user_settings IS 'Переменные пользователя';
+CREATE TABLE company (
+    code ext.ltree,
+    company uuid,
+    val text
+);
+COMMENT ON TABLE company IS 'Значения настроек уровня организации';
+COMMENT ON COLUMN company.code IS 'Код настройки';
+COMMENT ON COLUMN company.company IS 'Организация';
+COMMENT ON COLUMN company.val IS 'Значение';
+ALTER TABLE ONLY company
+    ADD CONSTRAINT uk_set_company_code UNIQUE (code, company);
 ALTER TABLE ONLY settings
     ADD CONSTRAINT uk_settings_code UNIQUE (code, company, "user");
+CREATE INDEX fki_company_code ON company USING btree (code);
 CREATE INDEX fki_settings_code ON settings USING btree (code);
 CREATE TRIGGER tbui_settings BEFORE INSERT OR UPDATE OF code, "user", company ON settings FOR EACH ROW EXECUTE PROCEDURE tfc_settings();
+ALTER TABLE ONLY company
+    ADD CONSTRAINT fk_set_company_code FOREIGN KEY (code) REFERENCES def.settings(code) ON UPDATE CASCADE;
 ALTER TABLE ONLY settings
     ADD CONSTRAINT fk_settings_code FOREIGN KEY (code) REFERENCES def.settings(code) ON UPDATE CASCADE;

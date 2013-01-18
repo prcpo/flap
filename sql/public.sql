@@ -49,6 +49,10 @@ COMMENT ON FUNCTION setting(text, anyelement) IS 'Устанавливает з�
 Первый параметр - код переменной из def.settings
 Второй - значение. Значение может быть любого типа, оно автоматически преобразуется в текст.
 Возвращает TRUE, если успешно. Иначе - FALSE.';
+CREATE FUNCTION shortname(_fullname text) RETURNS text
+    LANGUAGE sql
+    AS $_$select COALESCE(_fullname, $1);$_$;
+COMMENT ON FUNCTION shortname(_fullname text) IS 'Вычисляет фамилию и инициалы пользователя';
 CREATE FUNCTION tfc_companies() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     AS $$begin
@@ -56,11 +60,8 @@ CREATE FUNCTION tfc_companies() RETURNS trigger
 		delete from sec.users 
 		where user_name = session_user 
 		and company = OLD.uuid;
-		IF NOT FOUND THEN 
-			RETURN NULL;
-		else
-			RETURN OLD;
-		end if;
+		IF NOT FOUND THEN RETURN NULL; end if;
+		RETURN OLD;
 	else
 		if (TG_OP = 'UPDATE') then
 			if not (NEW.uuid = OLD.uuid) then 
@@ -98,7 +99,8 @@ end;$$;
 COMMENT ON FUNCTION tfc_settings() IS 'Изменяет настройки пользователя';
 CREATE VIEW companies AS
     SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("session_user"())::text));
-COMMENT ON VIEW companies IS 'Список организаций, для которых ведётся учёт';
+COMMENT ON VIEW companies IS 'Список организаций, для которых ведётся учёт.
+Наименование организации дублируется в пользовательской переменной.';
 CREATE VIEW objects AS
     SELECT raw.uuid, raw.data FROM obj.raw WHERE (raw.comp = company());
 COMMENT ON VIEW objects IS 'Объекты системы';

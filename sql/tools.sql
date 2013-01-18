@@ -50,3 +50,22 @@ CREATE FUNCTION uuid_null() RETURNS uuid
   select '00000000-0000-0000-0000-000000000000'::uuid
 $$;
 COMMENT ON FUNCTION uuid_null() IS 'Возвращает нулевой UUID';
+REVOKE ALL ON SCHEMA tools FROM PUBLIC;
+REVOKE ALL ON SCHEMA tools FROM admin;
+GRANT ALL ON SCHEMA tools TO admin;
+GRANT USAGE ON SCHEMA tools TO accuser;
+REVOKE ALL ON FUNCTION iif(_condition boolean, _res1 anyelement, _res2 anyelement) FROM PUBLIC;
+REVOKE ALL ON FUNCTION iif(_condition boolean, _res1 anyelement, _res2 anyelement) FROM admin;
+GRANT ALL ON FUNCTION iif(_condition boolean, _res1 anyelement, _res2 anyelement) TO admin;
+GRANT ALL ON FUNCTION iif(_condition boolean, _res1 anyelement, _res2 anyelement) TO PUBLIC;
+GRANT ALL ON FUNCTION iif(_condition boolean, _res1 anyelement, _res2 anyelement) TO accuser;
+REVOKE ALL ON FUNCTION uuid_generate_v4() FROM PUBLIC;
+REVOKE ALL ON FUNCTION uuid_generate_v4() FROM admin;
+GRANT ALL ON FUNCTION uuid_generate_v4() TO admin;
+GRANT ALL ON FUNCTION uuid_generate_v4() TO PUBLIC;
+GRANT ALL ON FUNCTION uuid_generate_v4() TO accuser;
+REVOKE ALL ON FUNCTION uuid_null() FROM PUBLIC;
+REVOKE ALL ON FUNCTION uuid_null() FROM admin;
+GRANT ALL ON FUNCTION uuid_null() TO admin;
+GRANT ALL ON FUNCTION uuid_null() TO PUBLIC;
+GRANT ALL ON FUNCTION uuid_null() TO accuser;
