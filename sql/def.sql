@@ -20,13 +20,13 @@ where uuid = $1;$_$;
 COMMENT ON FUNCTION company_set(uuid) IS 'Устанавливает организацию, учёт которой ведём.';
 CREATE FUNCTION settings_company(_code ext.ltree) RETURNS uuid
     LANGUAGE sql SECURITY DEFINER
-    AS $_$select iif(iscompany, def.company_get(), null) 
+    AS $_$select coalesce(iif(iscompany, def.company_get(), null), uuid_null())
 from def.settings
 where code = $1;$_$;
 COMMENT ON FUNCTION settings_company(_code ext.ltree) IS 'Возвращает организацию для параметра';
 CREATE FUNCTION settings_user(_user ext.ltree) RETURNS text
     LANGUAGE sql SECURITY DEFINER
-    AS $_$select iif(isuser, session_user::text, null::text)
+    AS $_$select coalesce(iif(isuser, session_user::text, null), '')
 from def.settings
 where code = $1;$_$;
 COMMENT ON FUNCTION settings_user(_user ext.ltree) IS 'Возвращает пользователя параметра';
