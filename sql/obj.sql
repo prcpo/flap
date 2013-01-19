@@ -11,7 +11,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 CREATE TABLE raw (
     uuid uuid DEFAULT tools.uuid_generate_v4() NOT NULL,
-    comp uuid DEFAULT def.company_get(),
+    comp uuid DEFAULT set.company_get() NOT NULL,
     data json
 );
 COMMENT ON TABLE raw IS 'Ненормализованные данные';

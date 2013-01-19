@@ -6,21 +6,9 @@ SET client_min_messages = warning;
 CREATE SCHEMA def;
 COMMENT ON SCHEMA def IS 'Определения объектов, справочников, действий, правил и т.д.';
 SET search_path = def, pg_catalog;
-CREATE FUNCTION company_get() RETURNS uuid
-    LANGUAGE sql
-    AS $$select val::uuid 
-from settings 
-where code = 'work.company';$$;
-COMMENT ON FUNCTION company_get() IS 'Возвращает тескущую организацию';
-CREATE FUNCTION company_set(uuid) RETURNS boolean
-    LANGUAGE sql
-    AS $_$select set.set('work.company', uuid::text) 
-from companies
-where uuid = $1;$_$;
-COMMENT ON FUNCTION company_set(uuid) IS 'Устанавливает организацию, учёт которой ведём.';
 CREATE FUNCTION settings_company(_code ext.ltree) RETURNS uuid
     LANGUAGE sql SECURITY DEFINER
-    AS $_$select coalesce(iif(iscompany, def.company_get(), null), uuid_null())
+    AS $_$select coalesce(iif(iscompany, set.company_get(), null), uuid_null())
 from def.settings
 where code = $1;$_$;
 COMMENT ON FUNCTION settings_company(_code ext.ltree) IS 'Возвращает организацию для параметра';
@@ -119,16 +107,16 @@ INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUE
 INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUES ('dic.bank', 'name', 2, 'fld.text', 'Наименование', false, true);
 INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUES ('dic.bank', 'bic', 1, 'fld.numeric', 'БИК', false, false);
 INSERT INTO requisites (parent, code, seq, type, disp, isarray, ishistory) VALUES ('dic.bank', 'account', 3, 'fld.numeric', 'Коррсчёт', false, true);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('company.name', 'Наименование организации', NULL, 'Моя организация', false, true, false, 'fld.text', NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('name', 'Наименование платформы', NULL, 'Учётная платформа FLAP', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('note', 'Описание', NULL, 'Свежую версию вы можете взять на https://github.com/prcpo/flap', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('version', 'Версия платформы', NULL, '12.11', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.company', 'Организация, с которой работать', NULL, '=uuid_null()', true, false, false, 'fld.uuid', NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.date', 'Рабочая дата', NULL, '=now()', true, true, false, 'fld.date', NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.period', 'Расчётный период', NULL, NULL, true, true, false, 'fld.period', NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.fullname', 'Фамилия, имя и отчество пользователя', NULL, NULL, true, false, false, NULL, NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.position', 'Должность', NULL, NULL, true, true, false, NULL, NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.shortname', 'Фамилия, инициалы пользователя', NULL, '=shortname(setting(''user.fullname''))', true, false, false, NULL, NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('company.name', 'Наименование организации', NULL, 'Моя организация', false, true, true, 'fld.text', NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.fullname', 'Фамилия, имя и отчество пользователя', NULL, NULL, true, false, true, NULL, NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.position', 'Должность', NULL, NULL, true, true, true, NULL, NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.shortname', 'Фамилия, инициалы пользователя', NULL, '=shortname(setting(''user.fullname''))', true, false, true, NULL, NULL);
 INSERT INTO tests (tree, command, result) VALUES ('settings.01.set', 'setting_set(''work.date'',''01.01.12'')::text', 'false');
 INSERT INTO tests (tree, command, result) VALUES ('settings.02.set', 'setting_set(''work.date'',''02.01.12''::text)::text', 'true');
 INSERT INTO tests (tree, command, result) VALUES ('settings.03.set', 'setting_set(''work_date'',''03.01.12''::text)::text', 'false');

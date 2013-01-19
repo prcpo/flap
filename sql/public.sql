@@ -24,12 +24,12 @@ code FROM companies WHERE uuid = company() - кодовое название о�
 ';
 CREATE FUNCTION company() RETURNS uuid
     LANGUAGE sql SECURITY DEFINER
-    AS $$select def.company_get();$$;
+    AS $$select set.company_get();$$;
 COMMENT ON FUNCTION company() IS 'Возвращает uuid организации, для которой ведётся учёт. ';
 CREATE FUNCTION company(uuid) RETURNS uuid
     LANGUAGE plpgsql SECURITY DEFINER
     AS $_$begin
-	PERFORM def.company_set(COALESCE($1,uuid_null()));
+	PERFORM set.company_set(COALESCE($1,uuid_null()));
 	return company();
 end;$_$;
 COMMENT ON FUNCTION company(uuid) IS 'Устанавливает организацию, для которой ведётся учёт. 
@@ -46,7 +46,7 @@ COMMENT ON FUNCTION setting(text) IS 'Возвращает значение по
 Возвращаемое значение - текст.';
 CREATE FUNCTION setting(text, anyelement) RETURNS boolean
     LANGUAGE sql SECURITY DEFINER
-    AS $_$select set.set($1::ltree, $2::text)$_$;
+    AS $_$insert into settings (code, val) values ($1::ltree, $2::text) returning true;$_$;
 COMMENT ON FUNCTION setting(text, anyelement) IS 'Устанавливает значение пользовательской переменой.
 Первый параметр - код переменной из def.settings
 Второй - значение. Значение может быть любого типа, оно автоматически преобразуется в текст.
@@ -99,6 +99,15 @@ CREATE FUNCTION tfc_settings() RETURNS trigger
 	end if;
 end;$$;
 COMMENT ON FUNCTION tfc_settings() IS 'Изменяет настройки пользователя';
+CREATE FUNCTION work_date() RETURNS date
+    LANGUAGE plpgsql
+    AS $$begin
+	return set.get('work.date');
+exception 
+	when others then
+		return now();
+end;$$;
+COMMENT ON FUNCTION work_date() IS 'Возвращает рабочую дату';
 CREATE VIEW companies AS
     SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("session_user"())::text));
 COMMENT ON VIEW companies IS 'Список организаций, для которых ведётся учёт.
@@ -106,7 +115,7 @@ COMMENT ON VIEW companies IS 'Список организаций, для кот
 CREATE VIEW objects AS
     SELECT raw.uuid, raw.data FROM obj.raw WHERE (raw.comp = company());
 COMMENT ON VIEW objects IS 'Объекты системы';
-CREATE VIEW settings WITH (security_barrier=false) AS
+CREATE VIEW settings AS
     SELECT s.code, CASE WHEN (s.val ~~ '=%'::text) THEN calculate("substring"(s.val, 2)) ELSE s.val END AS val FROM (SELECT d.code, COALESCE(s.val, d.default_value) AS val FROM (def.settings d LEFT JOIN set.user_settings s ON ((s.code OPERATOR(ext.=) d.code)))) s;
 COMMENT ON VIEW settings IS 'Значения переменных';
 CREATE TRIGGER tiu_settings INSTEAD OF INSERT OR DELETE OR UPDATE ON settings FOR EACH ROW EXECUTE PROCEDURE tfc_settings();
@@ -125,11 +134,6 @@ REVOKE ALL ON FUNCTION company(uuid) FROM admin;
 GRANT ALL ON FUNCTION company(uuid) TO admin;
 GRANT ALL ON FUNCTION company(uuid) TO PUBLIC;
 GRANT ALL ON FUNCTION company(uuid) TO accuser;
-REVOKE ALL ON FUNCTION setting(text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION setting(text) FROM admin;
-GRANT ALL ON FUNCTION setting(text) TO admin;
-GRANT ALL ON FUNCTION setting(text) TO PUBLIC;
-GRANT ALL ON FUNCTION setting(text) TO accuser;
 REVOKE ALL ON FUNCTION setting(text, anyelement) FROM PUBLIC;
 REVOKE ALL ON FUNCTION setting(text, anyelement) FROM admin;
 GRANT ALL ON FUNCTION setting(text, anyelement) TO admin;
