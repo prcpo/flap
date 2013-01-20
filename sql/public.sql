@@ -67,7 +67,7 @@ COMMENT ON FUNCTION setting(text, text) IS 'Устанавливает знач�
 Возвращает TRUE, если успешно. Иначе - FALSE.';
 CREATE FUNCTION setting(_code text, _dt date DEFAULT work_date()) RETURNS text
     LANGUAGE sql
-    AS $_$select calculate(val)::text
+    AS $_$select calculate(val, $2)::text
 	from set.settings_h
 	where code = $1::ltree and period @> $2;$_$;
 COMMENT ON FUNCTION setting(_code text, _dt date) IS 'Возвращает значение переменной на указанную дату.
