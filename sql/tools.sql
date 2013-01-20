@@ -27,6 +27,18 @@ CREATE FUNCTION iif(_condition boolean, _res1 anyelement, _res2 anyelement) RETU
 		then _res1
 		else _res2 
 	END;$$;
+CREATE FUNCTION this_month(date DEFAULT public.work_date()) RETURNS daterange
+    LANGUAGE sql
+    AS $$select daterange(date_trunc('month',work_date())::date, 
+	(date_trunc('month',work_date())+interval '1 month')::date);$$;
+COMMENT ON FUNCTION this_month(date) IS 'Возвращает период дат, соответствуюущий календарному месяцу, в который входит параметр - дата.
+Если дата не задана, используется рабочая дата.';
+CREATE FUNCTION this_year(date DEFAULT public.work_date()) RETURNS daterange
+    LANGUAGE sql
+    AS $$select daterange(date_trunc('year',work_date())::date, 
+	(date_trunc('year',work_date())+interval '1 year')::date);$$;
+COMMENT ON FUNCTION this_year(date) IS 'Возвращает период дат, соответствуюущий календарному году, в который входит параметр - дата.
+Если дата не задана, используется рабочая дата.';
 CREATE FUNCTION uuid_generate_v4() RETURNS uuid
     LANGUAGE sql
     AS $$

@@ -7,10 +7,16 @@ CREATE SCHEMA set;
 COMMENT ON SCHEMA set IS 'Значения констант, параметров, настроек.';
 SET search_path = set, pg_catalog;
 CREATE FUNCTION company_get() RETURNS uuid
-    LANGUAGE sql
-    AS $$select val::uuid 
-from settings 
-where code = 'work.company';$$;
+    LANGUAGE plpgsql
+    AS $$declare
+	_res uuid;
+begin
+	_res = NULL;
+	select val::uuid into _res
+	from set.user_settings_wo_history 
+	where code = 'work.company';
+	return coalesce(_res, uuid_null());
+end;$$;
 COMMENT ON FUNCTION company_get() IS 'Возвращает тескущую организацию';
 CREATE FUNCTION company_set(uuid) RETURNS boolean
     LANGUAGE sql
@@ -18,7 +24,7 @@ CREATE FUNCTION company_set(uuid) RETURNS boolean
 from companies
 where uuid = $1;$_$;
 COMMENT ON FUNCTION company_set(uuid) IS 'Устанавливает организацию, учёт которой ведём.';
-CREATE FUNCTION get(_code ext.ltree) RETURNS text
+CREATE FUNCTION get(_code ext.ltree, _dt date DEFAULT public.work_date()) RETURNS text
     LANGUAGE plpgsql
     AS $$begin
 	-- Если запрашивается расчётная дата, то получим зацикливание на view set.user_settings
@@ -26,11 +32,14 @@ CREATE FUNCTION get(_code ext.ltree) RETURNS text
 		return val from set.user_settings_wo_history
 			where code = _code;
 	else
-		return val from set.user_settings
-			where code = _code;
+		return COALESCE(h.val, s.val) AS val
+			FROM set.user_settings_wo_history s
+			LEFT JOIN set.history h ON h.code = s.code AND h.company = s.company AND h."user" = s."user"
+			WHERE daterange(h.dt, h.dt_e) @> coalesce(_dt, work_date())
+			and s.code = _code;
 	end if;
 end;$$;
-COMMENT ON FUNCTION get(_code ext.ltree) IS 'Возвращает значение переменной';
+COMMENT ON FUNCTION get(_code ext.ltree, _dt date) IS 'Возвращает значение переменной';
 CREATE FUNCTION set(_code ext.ltree, _value text) RETURNS boolean
     LANGUAGE plpgsql
     AS $$declare
@@ -182,9 +191,12 @@ COMMENT ON COLUMN settings.val IS 'Значение';
 CREATE VIEW user_settings_wo_history AS
     SELECT s.code, s.company, s."user", s.val FROM settings s WHERE ((COALESCE(s.company, tools.uuid_null()) = COALESCE(def.settings_company(s.code), tools.uuid_null())) AND (COALESCE(s."user", ''::text) = COALESCE(def.settings_user(s.code), ''::text)));
 COMMENT ON VIEW user_settings_wo_history IS 'Переменные пользователя без учёта истории';
-CREATE VIEW user_settings AS
-    SELECT s.code, COALESCE(h.val, s.val) AS val FROM (user_settings_wo_history s LEFT JOIN history h ON ((((h.code OPERATOR(ext.=) s.code) AND (h.company = s.company)) AND (h."user" = s."user")))) WHERE (daterange(h.dt, h.dt_e) @> public.work_date());
-COMMENT ON VIEW user_settings IS 'Переменные пользователя';
+CREATE VIEW user_settings_h AS
+    SELECT s.code, COALESCE(h.val, s.val) AS val, daterange(COALESCE(h.dt, '-infinity'::date), COALESCE(h.dt_e, 'infinity'::date)) AS period FROM (user_settings_wo_history s LEFT JOIN history h ON ((((h.code OPERATOR(ext.=) s.code) AND (h.company = s.company)) AND (h."user" = s."user"))));
+COMMENT ON VIEW user_settings_h IS 'Переменные пользователя с историей';
+CREATE VIEW settings_h AS
+    SELECT d.code, COALESCE(s.val, d.default_value) AS val, COALESCE(s.period, daterange('-infinity'::date, 'infinity'::date)) AS period FROM (def.settings d LEFT JOIN user_settings_h s ON ((s.code OPERATOR(ext.=) d.code)));
+COMMENT ON VIEW settings_h IS 'Все значения переменных, доступные пользователю, включая их историю';
 ALTER TABLE ONLY history
     ADD CONSTRAINT pk_history PRIMARY KEY (code, company, "user", dt);
 ALTER TABLE ONLY settings

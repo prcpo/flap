@@ -67,6 +67,7 @@ CREATE TABLE settings (
 );
 COMMENT ON TABLE settings IS 'Определения настроек.
 Если default_value начинается со знака =, то дальнейшее выражение будет вычислено на SQL (вызвана фунция calculate()).
+Не следует забывать знак % для вычислений, требующих привязки ко времени!
 Результаты вычислений преобразуются к текстовому формату.
 См. примечание к функции calculate()
 ';
@@ -112,11 +113,11 @@ INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishist
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('version', 'Версия платформы', NULL, '12.11', false, false, false, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.company', 'Организация, с которой работать', NULL, '=uuid_null()', true, false, false, 'fld.uuid', NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.date', 'Рабочая дата', NULL, '=now()', true, true, false, 'fld.date', NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.period', 'Расчётный период', NULL, NULL, true, true, false, 'fld.period', NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('company.name', 'Наименование организации', NULL, 'Моя организация', false, true, true, 'fld.text', NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.fullname', 'Фамилия, имя и отчество пользователя', NULL, NULL, true, false, true, NULL, NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.position', 'Должность', NULL, NULL, true, true, true, NULL, NULL);
-INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.shortname', 'Фамилия, инициалы пользователя', NULL, '=shortname(setting(''user.fullname''))', true, false, true, NULL, NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.shortname', 'Фамилия, инициалы пользователя', NULL, '=setting(''user.fullname'',%)', true, false, true, NULL, NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.position', 'Должность', NULL, '_______________________', true, true, true, NULL, NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.fullname', 'Фамилия, имя и отчество пользователя', NULL, '_____________________', true, false, true, NULL, NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.period', 'Расчётный период', NULL, '=this_year(%)', true, true, false, 'fld.period', NULL);
 INSERT INTO tests (tree, command, result) VALUES ('settings.01.set', 'setting_set(''work.date'',''01.01.12'')::text', 'false');
 INSERT INTO tests (tree, command, result) VALUES ('settings.02.set', 'setting_set(''work.date'',''02.01.12''::text)::text', 'true');
 INSERT INTO tests (tree, command, result) VALUES ('settings.03.set', 'setting_set(''work_date'',''03.01.12''::text)::text', 'false');
