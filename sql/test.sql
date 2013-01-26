@@ -65,6 +65,71 @@ begin
 		and test::text = _code::text;
 	RETURN _res = _estimate AND _err IS NULL;
 end;$$;
+CREATE FUNCTION fill_random_objects(_code ext.ltree, _cnt integer) RETURNS void
+    LANGUAGE sql
+    AS $_$insert into obj.raw("type","data")
+select $1, test.generate_object($1) from generate_series(1,$2) idx;$_$;
+COMMENT ON FUNCTION fill_random_objects(_code ext.ltree, _cnt integer) IS 'Создаёт указанное количество объектов указанного типа';
+CREATE FUNCTION generate_all_object(_num integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$declare
+	_cur cursor for select pid from (
+	select pid, max(level) lvl from test.requisites_tree
+	group by pid ) t1
+	order by lvl;
+begin
+	for _code in _cur loop
+		perform test.fill_random_objects(_code.pid, _num);
+	end loop;
+end;
+$$;
+CREATE FUNCTION generate_object(_code ext.ltree) RETURNS json
+    LANGUAGE plpgsql
+    AS $$begin
+	return json.get(array_agg(val)) from (
+		select json.element(code::text, test.generate_random("type")) val from def.requisites
+		where parent = _code) e1;
+end;$$;
+COMMENT ON FUNCTION generate_object(_code ext.ltree) IS 'Заполняет реквизиты объекта случайными данными';
+CREATE FUNCTION generate_random(_type ext.ltree) RETURNS text
+    LANGUAGE plpgsql
+    AS $_$declare
+	_res	text;
+	_num integer;
+	_lipsum text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam et blandit nunc. Vestibulum et massa sem, eget laoreet ipsum. Mauris eget orci quis lectus iaculis consectetur auctor ut nulla. Donec ullamcorper nisi imperdiet arcu tristique pretium vitae id eros. Maecenas condimentum urna sed arcu congue mattis. Pellentesque malesuada purus ut orci euismod feugiat. Vestibulum eu tempus odio. Donec faucibus luctus est suscipit fermentum. Phasellus vehicula semper mauris, a bibendum metus convallis quis. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nam consectetur massa et felis lacinia non hendrerit tellus hendrerit. Duis mattis ultrices tellus, eget. ';
+begin
+	if (_type::text = 'fld.date') then
+		return (now()::date - (random() * 365)::integer)::text; end if;
+	if (_type::text = 'fld.money') then
+		return (round((random() * 10000)::numeric,2))::text; end if;
+	if (_type::text = 'fld.num') then
+		return substring( 'ЯЧСМИТВАП' from (( random() * 8 )::int + 1 ) for 1 )
+		||'-'||(round((random() * 100000)::numeric))::text; end if;
+	if (_type::text = 'fld.text') then
+		return substring(_lipsum, (random()*100)::integer+1, (random()*100)::integer+1); end if;
+	if (_type::text = 'fld.numeric') then
+		return (round((random() * 100000)::numeric))::text; end if;
+	if (_type::text = 'fld.percent') then
+		return (round((random() * 100)::numeric))::text; end if;
+	if (_type::text = 'fld.period') then
+		return res from(
+			with dt1 as (select test.generate_random('fld.date'::ltree)::date dt),
+				dt2 as (select test.generate_random('fld.date'::ltree)::date dt)
+			select iif(dt1.dt > dt2.dt, 
+				daterange(dt2.dt,dt1.dt),
+				daterange(dt1.dt,dt2.dt))::text res from dt1,dt2) r1; 
+	end if;
+	if (subpath(_type,0,1)::text='dic') then
+		select count(*) from obj.user_raw where "type" = _type into _num;
+		_num = (random() * _num)::integer;
+		execute 'select uuid from obj.user_raw limit 1 offset $1' into _res using _num;
+		return _res;
+	end if;
+	return _type::text;
+end;$_$;
+COMMENT ON FUNCTION generate_random(_type ext.ltree) IS 'Возвращает случайное значение в зависимости от типа.';
+CREATE VIEW requisites_tree AS
+    WITH RECURSIVE tree(id, pid, code) AS (SELECT requisites.type AS id, requisites.parent AS pid, requisites.code FROM def.requisites), wp(code, id, pid, level, path) AS (SELECT s.code, s.id, s.pid, 0, (s.pid OPERATOR(ext.||) s.code) FROM tree s WHERE (NOT (EXISTS (SELECT 'x' FROM tree s1 WHERE (s1.pid OPERATOR(ext.=) s.id)))) UNION ALL SELECT tree.code, tree.id, tree.pid, (wp.level + 1), ((tree.pid OPERATOR(ext.||) tree.code) OPERATOR(ext.||) wp.path) FROM tree, wp WHERE (tree.id OPERATOR(ext.=) wp.pid)) SELECT wp.pid, wp.code, wp.id, wp.level, wp.path FROM wp;
 SET default_tablespace = '';
 SET default_with_oids = false;
 CREATE TABLE results (
