@@ -104,7 +104,7 @@ CREATE FUNCTION generate_random(_type ext.ltree) RETURNS text
     AS $_$declare
 	_res	text;
 	_num integer;
-	_lipsum text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam et blandit nunc. Vestibulum et massa sem, eget laoreet ipsum. Mauris eget orci quis lectus iaculis consectetur auctor ut nulla. Donec ullamcorper nisi imperdiet arcu tristique pretium vitae id eros. Maecenas condimentum urna sed arcu congue mattis. Pellentesque malesuada purus ut orci euismod feugiat. Vestibulum eu tempus odio. Donec faucibus luctus est suscipit fermentum. Phasellus vehicula semper mauris, a bibendum metus convallis quis. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nam consectetur massa et felis lacinia non hendrerit tellus hendrerit. Duis mattis ultrices tellus, eget. ';
+	_lipsum text = 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. ';
 begin
 	if (_type::text = 'fld.date') then
 		return (now()::date - (random() * 365)::integer)::text; end if;
@@ -114,7 +114,8 @@ begin
 		return substring( 'ЯЧСМИТВАП' from (( random() * 8 )::int + 1 ) for 1 )
 		||'-'||(round((random() * 100000)::numeric))::text; end if;
 	if (_type::text = 'fld.text') then
-		return substring(_lipsum, (random()*100)::integer+1, (random()*100)::integer+1); end if;
+		return _type::text || test.generate_random('fld.numeric'::ltree) || ' ' 
+		|| substring(_lipsum, (random()*100)::integer+1, (random()*100)::integer+1); end if;
 	if (_type::text = 'fld.numeric') then
 		return (round((random() * 100000)::numeric))::text; end if;
 	if (_type::text = 'fld.percent') then
