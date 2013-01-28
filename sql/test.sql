@@ -87,7 +87,15 @@ CREATE FUNCTION generate_object(_code ext.ltree) RETURNS json
     LANGUAGE plpgsql
     AS $$begin
 	return json.get(array_agg(val)) from (
-		select json.element(code::text, test.generate_random("type")) val from def.requisites
+		select  
+			case when isarray then
+				json.element(code::text, array_to_json(array(
+					select test.generate_random("type") from generate_series(0,(random()*2)::integer)
+			)))
+			else
+				json.element(code::text,test.generate_random("type"))
+			end as val 
+		from def.requisites
 		where parent = _code) e1;
 end;$$;
 COMMENT ON FUNCTION generate_object(_code ext.ltree) IS 'Заполняет реквизиты объекта случайными данными';
@@ -122,7 +130,8 @@ begin
 	if (subpath(_type,0,1)::text='dic') then
 		select count(*) from obj.user_raw where "type" = _type into _num;
 		_num = (random() * _num)::integer;
-		execute 'select uuid from obj.user_raw limit 1 offset $1' into _res using _num;
+		execute 'select uuid from obj.user_raw where type = $1 limit 1 offset $2' 
+			into _res using _type, _num;
 		return _res;
 	end if;
 	return _type::text;

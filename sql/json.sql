@@ -95,3 +95,6 @@ CREATE FUNCTION value(integer) RETURNS text
 CREATE FUNCTION value(boolean) RETURNS text
     LANGUAGE sql
     AS $_$select $1::text$_$;
+CREATE FUNCTION value(json) RETURNS json
+    LANGUAGE sql
+    AS $_$select $1$_$;

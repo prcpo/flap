@@ -15,17 +15,25 @@ CREATE FUNCTION otables_create() RETURNS void
 	_cur refcursor;
 	_stmt	text;
 begin
+	open _cur for select 'drop table ' || schemaname ||'.'|| tablename from obj.otables;
+	loop 
+		fetch _cur into _stmt;
+		if _stmt is null then exit; end if;
+		raise notice 'Exec: %', _stmt;
+		execute _stmt;
+	end loop;
+	close _cur;
 	open _cur for 
 		select 'CREATE TABLE ' || def.otablename(p) || ' (
 		 "uuid" uuid NOT NULL DEFAULT uuid_generate_v4(), 
 		 ' 
-		|| array_to_string(array_agg( '"'||c::text || '" ' || t::text),',
+		|| array_to_string(array_agg( '"'||c::text || '" ' || t::text || iif(isarray,'[]'::text,''::text)),',
 		 ') 
 		|| ',  
 			CONSTRAINT pk_n_' || replace(p::text,'.','_') || ' PRIMARY KEY ("uuid")
 		);'
 		from (
-		select r.parent p, r.code c, t.db_type t from def.requisites r, def.types t
+		select r.parent p, r.code c, t.db_type t, isarray from def.requisites r, def.types t
 		where t.code = r.type
 		and nlevel(r.code) = 1
 		) q1
