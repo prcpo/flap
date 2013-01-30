@@ -65,24 +65,6 @@ begin
 		and test::text = _code::text;
 	RETURN _res = _estimate AND _err IS NULL;
 end;$$;
-CREATE FUNCTION fill_random_objects(_code ext.ltree, _cnt integer) RETURNS void
-    LANGUAGE sql
-    AS $_$insert into obj.raw("type","data")
-select $1, test.generate_object($1) from generate_series(1,$2) idx;$_$;
-COMMENT ON FUNCTION fill_random_objects(_code ext.ltree, _cnt integer) IS 'Создаёт указанное количество объектов указанного типа';
-CREATE FUNCTION generate_all_object(_num integer) RETURNS void
-    LANGUAGE plpgsql
-    AS $$declare
-	_cur cursor for select pid from (
-	select pid, max(level) lvl from test.requisites_tree
-	group by pid ) t1
-	order by lvl;
-begin
-	for _code in _cur loop
-		perform test.fill_random_objects(_code.pid, _num);
-	end loop;
-end;
-$$;
 CREATE FUNCTION generate_object(_code ext.ltree) RETURNS json
     LANGUAGE plpgsql
     AS $$begin
@@ -99,6 +81,24 @@ CREATE FUNCTION generate_object(_code ext.ltree) RETURNS json
 		where parent = _code) e1;
 end;$$;
 COMMENT ON FUNCTION generate_object(_code ext.ltree) IS 'Заполняет реквизиты объекта случайными данными';
+CREATE FUNCTION generate_object(_num integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $$declare
+	_cur cursor for select pid from (
+	select pid, max(level) lvl from test.requisites_tree
+	group by pid ) t1
+	order by lvl;
+begin
+	for _code in _cur loop
+		perform test.fill_random_objects(_code.pid, _num);
+	end loop;
+end;
+$$;
+CREATE FUNCTION generate_object(_code ext.ltree, _cnt integer) RETURNS void
+    LANGUAGE sql
+    AS $_$insert into obj.raw("type","data")
+select $1, test.generate_object($1) from generate_series(1,$2) idx;$_$;
+COMMENT ON FUNCTION generate_object(_code ext.ltree, _cnt integer) IS 'Создаёт указанное количество объектов указанного типа';
 CREATE FUNCTION generate_random(_type ext.ltree) RETURNS text
     LANGUAGE plpgsql
     AS $_$declare
@@ -130,7 +130,7 @@ begin
 	end if;
 	if (subpath(_type,0,1)::text='dic') then
 		select count(*) from obj.user_raw where "type" = _type into _num;
-		_num = (random() * _num)::integer;
+		_num = (random() * (_num -1) )::integer;
 		execute 'select uuid from obj.user_raw where type = $1 limit 1 offset $2' 
 			into _res using _type, _num;
 		return _res;

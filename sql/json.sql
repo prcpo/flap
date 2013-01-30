@@ -60,8 +60,8 @@ parsed as(
 			else p.path
 		end,
 		case when p.stack[array_upper(p.stack,1)]='{' then p.token
-		when p.stack[array_upper(p.stack,1)]='[' then '_' ||
-				(p.poses[array_upper(p.poses,1)]+1)::text || '_'
+		when p.stack[array_upper(p.stack,1)]='[' then '[' ||
+				(p.poses[array_upper(p.poses,1)]+1)::text || ']'
 		else ''
 		end,
 		case when t.token in ('[','{') then p.poses[1:array_upper(p.poses,1)-
