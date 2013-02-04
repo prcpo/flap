@@ -134,11 +134,16 @@ COMMENT ON VIEW companies IS 'Список организаций, для кот
 CREATE VIEW objects AS
     SELECT raw.uuid, raw.data FROM obj.raw WHERE (raw.comp = company());
 COMMENT ON VIEW objects IS 'Объекты системы';
+CREATE VIEW otypes AS
+    SELECT types.code FROM def.types WHERE (types.code OPERATOR(ext.~) 'dic|doc.*'::ext.lquery);
 CREATE VIEW settings_h AS
     SELECT s.code, calculate(s.val) AS val, s.period FROM set.settings_h s;
 CREATE VIEW settings AS
     SELECT s.code, s.val FROM settings_h s WHERE (s.period @> work_date());
 COMMENT ON VIEW settings IS 'Значения переменных';
+CREATE VIEW types AS
+    SELECT types.code FROM def.types WHERE ((types.code OPERATOR(ext.~) 'dic|doc|fld.*'::ext.lquery) AND (ext.nlevel(types.code) > 1));
+COMMENT ON VIEW types IS 'Типы объектов системы';
 CREATE TRIGGER tiu_settings INSTEAD OF INSERT OR DELETE OR UPDATE ON settings FOR EACH ROW EXECUTE PROCEDURE tfc_settings();
 CREATE TRIGGER tiud_companies INSTEAD OF INSERT OR DELETE OR UPDATE ON companies FOR EACH ROW EXECUTE PROCEDURE tfc_companies();
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
