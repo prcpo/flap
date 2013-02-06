@@ -121,7 +121,7 @@ CREATE FUNCTION tfc_settings() RETURNS trigger
 		return NEW;
 	end if;
 end;$$;
-COMMENT ON FUNCTION tfc_settings() IS 'Изменяет настройки пользователя';
+COMMENT ON FUNCTION tfc_settings() IS 'Изменяет структуру реквизитов объектов';
 SET default_tablespace = '';
 SET default_with_oids = false;
 CREATE TABLE _stmt (
