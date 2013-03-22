@@ -175,6 +175,7 @@ INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishist
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.position', 'Должность', NULL, '_______________________', true, true, true, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('user.fullname', 'Фамилия, имя и отчество пользователя', NULL, '_____________________', true, false, true, NULL, NULL);
 INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.period', 'Расчётный период', NULL, '=this_year(%)', true, true, false, 'fld.period', NULL);
+INSERT INTO settings (code, disp, note, default_value, isuser, iscompany, ishistory, type, val) VALUES ('work.notification_time', 'Время последнего полученного сообщения', NULL, '-infinity', true, true, false, NULL, NULL);
 INSERT INTO tests (tree, command, result) VALUES ('settings.01.set', 'setting_set(''work.date'',''01.01.12'')::text', 'false');
 INSERT INTO tests (tree, command, result) VALUES ('settings.02.set', 'setting_set(''work.date'',''02.01.12''::text)::text', 'true');
 INSERT INTO tests (tree, command, result) VALUES ('settings.03.set', 'setting_set(''work_date'',''03.01.12''::text)::text', 'false');
@@ -198,6 +199,7 @@ INSERT INTO types (code, disp, note, db_type) VALUES ('dic.account', 'Расчё
 INSERT INTO types (code, disp, note, db_type) VALUES ('dic.agent', 'Контрагент', NULL, 'uuid');
 INSERT INTO types (code, disp, note, db_type) VALUES ('dic.bank', 'Банк', NULL, 'uuid');
 INSERT INTO types (code, disp, note, db_type) VALUES ('fld.uuid', 'UUID', NULL, 'uuid');
+INSERT INTO types (code, disp, note, db_type) VALUES ('fld.datetime', 'Время', NULL, 'timestamp');
 ALTER TABLE ONLY requisites
     ADD CONSTRAINT pk_requisites PRIMARY KEY (parent, code);
 ALTER TABLE ONLY settings

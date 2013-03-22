@@ -131,6 +131,9 @@ CREATE VIEW companies AS
     SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("session_user"())::text));
 COMMENT ON VIEW companies IS 'Список организаций, для которых ведётся учёт.
 Наименование организации дублируется в пользовательской переменной.';
+CREATE VIEW notfications AS
+    SELECT notifications.id, notifications.dt, notifications.notice, notifications.lev FROM tools.notifications WHERE ((("current_user"() = "session_user"()) AND (notifications.company = company())) AND (notifications.dt > (setting('work.notification_time'::text))::timestamp without time zone)) ORDER BY notifications.id;
+COMMENT ON VIEW notfications IS 'Сообщения сервера';
 CREATE VIEW objects AS
     SELECT raw.uuid, raw.data FROM obj.raw WHERE (raw.comp = company());
 COMMENT ON VIEW objects IS 'Объекты системы';

@@ -27,6 +27,10 @@ CREATE FUNCTION iif(_condition boolean, _res1 anyelement, _res2 anyelement) RETU
 		then _res1
 		else _res2 
 	END;$$;
+CREATE FUNCTION save_notify(text) RETURNS void
+    LANGUAGE sql
+    AS $_$insert into tools.notifications (notice) values ($1);$_$;
+COMMENT ON FUNCTION save_notify(text) IS 'Сохраняет сообщение клиенту в очереди сообщений';
 CREATE FUNCTION this_month(date DEFAULT public.work_date()) RETURNS daterange
     LANGUAGE sql
     AS $$select daterange(date_trunc('month',work_date())::date, 
@@ -62,6 +66,32 @@ CREATE FUNCTION uuid_null() RETURNS uuid
   select '00000000-0000-0000-0000-000000000000'::uuid
 $$;
 COMMENT ON FUNCTION uuid_null() IS 'Возвращает нулевой UUID';
+SET default_tablespace = '';
+SET default_with_oids = false;
+CREATE TABLE notifications (
+    id bigint NOT NULL,
+    "user" name DEFAULT "session_user"() NOT NULL,
+    company uuid DEFAULT public.company() NOT NULL,
+    notice text,
+    lev integer DEFAULT 10 NOT NULL,
+    dt timestamp with time zone DEFAULT clock_timestamp() NOT NULL
+);
+COMMENT ON TABLE notifications IS 'Сообщения сервера для клиентов';
+COMMENT ON COLUMN notifications.id IS 'ID сообщения';
+COMMENT ON COLUMN notifications.notice IS 'Сообщение';
+COMMENT ON COLUMN notifications.lev IS 'Уровень важности
+0 - самый важный';
+CREATE SEQUENCE notifications_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER SEQUENCE notifications_id_seq OWNED BY notifications.id;
+ALTER TABLE ONLY notifications ALTER COLUMN id SET DEFAULT nextval('notifications_id_seq'::regclass);
+ALTER TABLE ONLY notifications
+    ADD CONSTRAINT "pk_Notifications" PRIMARY KEY (id);
+CREATE INDEX idx_notifications ON notifications USING btree ("user", company);
 REVOKE ALL ON SCHEMA tools FROM PUBLIC;
 REVOKE ALL ON SCHEMA tools FROM admin;
 GRANT ALL ON SCHEMA tools TO admin;
