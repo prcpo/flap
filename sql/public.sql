@@ -122,11 +122,6 @@ CREATE FUNCTION tfc_settings() RETURNS trigger
 	end if;
 end;$$;
 COMMENT ON FUNCTION tfc_settings() IS 'Изменяет структуру реквизитов объектов';
-SET default_tablespace = '';
-SET default_with_oids = false;
-CREATE TABLE _stmt (
-    "?column?" text
-);
 CREATE VIEW companies AS
     SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("session_user"())::text));
 COMMENT ON VIEW companies IS 'Список организаций, для которых ведётся учёт.
