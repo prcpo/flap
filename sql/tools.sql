@@ -66,6 +66,21 @@ CREATE FUNCTION uuid_null() RETURNS uuid
   select '00000000-0000-0000-0000-000000000000'::uuid
 $$;
 COMMENT ON FUNCTION uuid_null() IS 'Возвращает нулевой UUID';
+CREATE FUNCTION work_date() RETURNS date
+    LANGUAGE plpgsql
+    AS $$declare
+	_res date;
+begin
+	_res = NULL;
+	select val::date into _res
+	from set.user_settings_wo_history 
+	where code = 'work.date';
+	return coalesce(_res, now());
+exception 
+	when others then
+		return now();
+end;$$;
+COMMENT ON FUNCTION work_date() IS 'Возвращает рабочую дату';
 SET default_tablespace = '';
 SET default_with_oids = false;
 CREATE TABLE notifications (

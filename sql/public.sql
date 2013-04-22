@@ -5,19 +5,9 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET search_path = public, pg_catalog;
 CREATE FUNCTION work_date() RETURNS date
-    LANGUAGE plpgsql
-    AS $$declare
-	_res date;
-begin
-	_res = NULL;
-	select val::date into _res
-	from set.user_settings_wo_history 
-	where code = 'work.date';
-	return coalesce(_res, now());
-exception 
-	when others then
-		return now();
-end;$$;
+    LANGUAGE sql
+    AS $$select tools.work_date();
+$$;
 COMMENT ON FUNCTION work_date() IS 'Возвращает рабочую дату';
 CREATE FUNCTION calculate(_statement text, _dt date DEFAULT work_date()) RETURNS text
     LANGUAGE plpgsql
