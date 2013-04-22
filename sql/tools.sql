@@ -31,13 +31,28 @@ CREATE FUNCTION save_notify(text) RETURNS void
     LANGUAGE sql
     AS $_$insert into tools.notifications (notice) values ($1);$_$;
 COMMENT ON FUNCTION save_notify(text) IS 'Сохраняет сообщение клиенту в очереди сообщений';
-CREATE FUNCTION this_month(date DEFAULT public.work_date()) RETURNS daterange
+CREATE FUNCTION work_date() RETURNS date
+    LANGUAGE plpgsql
+    AS $$declare
+	_res date;
+begin
+	_res = NULL;
+	select val::date into _res
+	from set.user_settings_wo_history 
+	where code = 'work.date';
+	return coalesce(_res, now());
+exception 
+	when others then
+		return now();
+end;$$;
+COMMENT ON FUNCTION work_date() IS 'Возвращает рабочую дату';
+CREATE FUNCTION this_month(date DEFAULT work_date()) RETURNS daterange
     LANGUAGE sql
     AS $$select daterange(date_trunc('month',tools.work_date())::date, 
 	(date_trunc('month',tools.work_date())+interval '1 month')::date);$$;
 COMMENT ON FUNCTION this_month(date) IS 'Возвращает период дат, соответствуюущий календарному месяцу, в который входит параметр - дата.
 Если дата не задана, используется рабочая дата.';
-CREATE FUNCTION this_year(date DEFAULT public.work_date()) RETURNS daterange
+CREATE FUNCTION this_year(date DEFAULT work_date()) RETURNS daterange
     LANGUAGE sql
     AS $$select daterange(date_trunc('year',tools.work_date())::date, 
 	(date_trunc('year',tools.work_date())+interval '1 year')::date);$$;
@@ -66,21 +81,6 @@ CREATE FUNCTION uuid_null() RETURNS uuid
   select '00000000-0000-0000-0000-000000000000'::uuid
 $$;
 COMMENT ON FUNCTION uuid_null() IS 'Возвращает нулевой UUID';
-CREATE FUNCTION work_date() RETURNS date
-    LANGUAGE plpgsql
-    AS $$declare
-	_res date;
-begin
-	_res = NULL;
-	select val::date into _res
-	from set.user_settings_wo_history 
-	where code = 'work.date';
-	return coalesce(_res, now());
-exception 
-	when others then
-		return now();
-end;$$;
-COMMENT ON FUNCTION work_date() IS 'Возвращает рабочую дату';
 SET default_tablespace = '';
 SET default_with_oids = false;
 CREATE TABLE notifications (
