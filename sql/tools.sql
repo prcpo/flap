@@ -86,7 +86,7 @@ SET default_with_oids = false;
 CREATE TABLE notifications (
     id bigint NOT NULL,
     "user" name DEFAULT "session_user"() NOT NULL,
-    company uuid DEFAULT public.company() NOT NULL,
+    company uuid DEFAULT set.company_get() NOT NULL,
     notice text,
     lev integer DEFAULT 10 NOT NULL,
     dt timestamp with time zone DEFAULT clock_timestamp() NOT NULL
