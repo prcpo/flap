@@ -33,14 +33,14 @@ CREATE FUNCTION save_notify(text) RETURNS void
 COMMENT ON FUNCTION save_notify(text) IS 'Сохраняет сообщение клиенту в очереди сообщений';
 CREATE FUNCTION this_month(date DEFAULT public.work_date()) RETURNS daterange
     LANGUAGE sql
-    AS $$select daterange(date_trunc('month',work_date())::date, 
-	(date_trunc('month',work_date())+interval '1 month')::date);$$;
+    AS $$select daterange(date_trunc('month',tools.work_date())::date, 
+	(date_trunc('month',tools.work_date())+interval '1 month')::date);$$;
 COMMENT ON FUNCTION this_month(date) IS 'Возвращает период дат, соответствуюущий календарному месяцу, в который входит параметр - дата.
 Если дата не задана, используется рабочая дата.';
 CREATE FUNCTION this_year(date DEFAULT public.work_date()) RETURNS daterange
     LANGUAGE sql
-    AS $$select daterange(date_trunc('year',work_date())::date, 
-	(date_trunc('year',work_date())+interval '1 year')::date);$$;
+    AS $$select daterange(date_trunc('year',tools.work_date())::date, 
+	(date_trunc('year',tools.work_date())+interval '1 year')::date);$$;
 COMMENT ON FUNCTION this_year(date) IS 'Возвращает период дат, соответствуюущий календарному году, в который входит параметр - дата.
 Если дата не задана, используется рабочая дата.';
 CREATE FUNCTION uuid_generate_v4() RETURNS uuid
