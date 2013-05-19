@@ -6,6 +6,9 @@ DATABASE=test
 # IP адрес или имя сервера.
 HOST=localhost
 
+# Порт сервера
+PORT=5432
+
 # Имя пользователя, обладающего правами создавать и удалять базы данных (адинистратора баз данных)
 DBA=postgres
 # и его пароль
@@ -20,8 +23,8 @@ ADMINPASSWD=admin
 TMP_PATH=/tmp
 CUR_PATH=$PWD
 
-SQL='psql -h '$HOST' -U '$ADMIN' -1 -d '$DATABASE' -f'
-SQLDBA='psql -h '$HOST' -U '$DBA
+SQL='psql -h '$HOST' -p '$PORT' -U '$ADMIN' -1 -d '$DATABASE' -f'
+SQLDBA='psql -h '$HOST' -p '$PORT' -U '$DBA
 
 cd sql
 

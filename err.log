@@ -1,26 +1,8 @@
 ERROR:  role "admin" already exists
 psql:roles.sql:1: ERROR:  role "accuser" already exists
-psql:roles.sql:3: ERROR:  role "test" already exists
-psql:roles.sql:4: WARNING:  there is no transaction in progress
-psql:roles.sql:5: NOTICE:  role "test" is already a member of role "accuser"
-psql:roles.sql:6: WARNING:  there is no transaction in progress
-psql:roles.sql:0: WARNING:  there is no transaction in progress
-psql:tools.sql:37: ERROR:  function public.work_date() does not exist
-LINE 1: CREATE FUNCTION this_month(date DEFAULT public.work_date()) ...
-                                                ^
-HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
-psql:tools.sql:39: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:43: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:45: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:61: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:62: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:67: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:68: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:82: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:83: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:84: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:85: ERROR:  current transaction is aborted, commands ignored until end of transaction block
-psql:tools.sql:93: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:roles.sql:2: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:roles.sql:3: ERROR:  current transaction is aborted, commands ignored until end of transaction block
+psql:tools.sql:93: ERROR:  schema "set" does not exist
 psql:tools.sql:94: ERROR:  current transaction is aborted, commands ignored until end of transaction block
 psql:tools.sql:95: ERROR:  current transaction is aborted, commands ignored until end of transaction block
 psql:tools.sql:96: ERROR:  current transaction is aborted, commands ignored until end of transaction block
