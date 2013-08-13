@@ -7,7 +7,7 @@ DATABASE=test
 HOST=localhost
 
 # Порт сервера
-PORT=5432
+PORT=5433
 
 # Имя пользователя, обладающего правами создавать и удалять базы данных (адинистратора баз данных)
 DBA=postgres
@@ -23,11 +23,25 @@ ADMINPASSWD=admin
 TMP_PATH=/tmp
 CUR_PATH=$PWD
 
-SQL='psql -h '$HOST' -p '$PORT' -U '$ADMIN' -1 -d '$DATABASE' -f'
-SQLDBA='psql -h '$HOST' -p '$PORT' -U '$DBA
+SQLFILE=$TMP_PATH/install_db.sql
+OUTFILE=$TMP_PATH/install_db.log
+
+SQL='psql -e -h '$HOST' -p '$PORT' -U '$ADMIN' -1 -d '$DATABASE' -f'
+SQLDBA='psql -e -h '$HOST' -p '$PORT' -U '$DBA 
+
+
+function dofile {
+    echo $1 ...;
+    echo '-- FILE: ' $1 >> $SQLFILE ;
+    cat $1 >> $SQLFILE;
+#    $SQL $1 >>$OUTFILE 2>&1;
+    echo '---------------' >> $SQLFILE;
+}
+
+echo '' > $OUTFILE;
+echo '' > $SQLFILE;
 
 cd sql
-
 
 cat database_drop.sql.template | sed 's/__DATABASE__/'$DATABASE'/g'  > $TMP_PATH/database_drop.sql
 cat database_create.sql.template | sed 's/__DATABASE__/'$DATABASE'/g'  > $TMP_PATH/database_create.sql
@@ -52,8 +66,7 @@ $SQLDBA -c 'GRANT ALL PRIVILEGES ON DATABASE '$DATABASE' to '$ADMIN ;
 PGPASSWORD=$ADMINPASSWD
 export PGPASSWORD
 
-echo ext...
-$SQL ext.sql;
+dofile ext.sql;
 
 # Чтобы добавить расширения в схему ext опять нужны права DBA
 PGPASSWORD=$DBAPASSWD
@@ -66,27 +79,27 @@ $SQLDBA -d $DATABASE -f extentions.sql;
 PGPASSWORD=$ADMINPASSWD
 export PGPASSWORD;
 
-echo roles...
-$SQL roles.sql;
-echo json...
-$SQL json.sql;
-echo tools...
-$SQL tools.sql;
-echo def...
-$SQL def.sql;
-echo test...
-$SQL test.sql;
-echo sec...
-$SQL sec.sql;
-echo set...
-$SQL set.sql;
-echo obj...
-$SQL obj.sql;
+echo roles.sql;
+$SQL roles.sql >>$OUTFILE 2>&1;
 
-echo public...
-$SQL public.sql;
+dofile json.sql;
+dofile tools.sql;
+dofile set.sql;
+dofile def.sql;
+dofile test.sql;
+dofile sec.sql;
+dofile obj.sql;
+dofile public.sql;
+
+$SQL $SQLFILE >>$OUTFILE 2>&1;
 
 PGPASSWORD=
 export PGPASSWORD;
 
 cd $CUR_PATH;
+
+echo 
+echo 'ОШИБОК при установке: ' `grep -c "ERROR" $OUTFILE`
+echo 'Подробности установки в файле ' $OUTFILE
+echo 
+
