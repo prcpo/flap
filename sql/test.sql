@@ -1,4 +1,5 @@
 SET statement_timeout = 0;
+SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -139,7 +140,37 @@ begin
 end;$_$;
 COMMENT ON FUNCTION generate_random(_type ext.ltree) IS 'Возвращает случайное значение в зависимости от типа.';
 CREATE VIEW requisites_tree AS
-    WITH RECURSIVE tree(id, pid, code) AS (SELECT requisites.type AS id, requisites.parent AS pid, requisites.code FROM def.requisites), wp(code, id, pid, level, path) AS (SELECT s.code, s.id, s.pid, 0, (s.pid OPERATOR(ext.||) s.code) FROM tree s WHERE (NOT (EXISTS (SELECT 'x' FROM tree s1 WHERE (s1.pid OPERATOR(ext.=) s.id)))) UNION ALL SELECT tree.code, tree.id, tree.pid, (wp.level + 1), ((tree.pid OPERATOR(ext.||) tree.code) OPERATOR(ext.||) wp.path) FROM tree, wp WHERE (tree.id OPERATOR(ext.=) wp.pid)) SELECT wp.pid, wp.code, wp.id, wp.level, wp.path FROM wp;
+ WITH RECURSIVE tree(id, pid, code) AS (
+         SELECT requisites.type AS id, 
+            requisites.parent AS pid, 
+            requisites.code
+           FROM def.requisites
+        ), wp(code, id, pid, level, path) AS (
+                 SELECT s.code, 
+                    s.id, 
+                    s.pid, 
+                    0, 
+                    (s.pid OPERATOR(ext.||) s.code)
+                   FROM tree s
+                  WHERE (NOT (EXISTS ( SELECT 'x'
+                           FROM tree s1
+                          WHERE (s1.pid OPERATOR(ext.=) s.id))))
+        UNION ALL 
+                 SELECT tree.code, 
+                    tree.id, 
+                    tree.pid, 
+                    (wp_1.level + 1), 
+                    ((tree.pid OPERATOR(ext.||) tree.code) OPERATOR(ext.||) wp_1.path)
+                   FROM tree, 
+                    wp wp_1
+                  WHERE (tree.id OPERATOR(ext.=) wp_1.pid)
+        )
+ SELECT wp.pid, 
+    wp.code, 
+    wp.id, 
+    wp.level, 
+    wp.path
+   FROM wp;
 SET default_tablespace = '';
 SET default_with_oids = false;
 CREATE TABLE results (

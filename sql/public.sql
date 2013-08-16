@@ -1,16 +1,10 @@
 SET statement_timeout = 0;
+SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET search_path = public, pg_catalog;
-CREATE FUNCTION setting(text, text) RETURNS boolean
-    LANGUAGE sql SECURITY DEFINER
-    AS $_$insert into settings (code, val) values ($1::ltree, $2::text) returning true;$_$;
-COMMENT ON FUNCTION setting(text, text) IS 'Устанавливает значение пользовательской переменой.
-Первый параметр - код переменной из def.settings
-Второй - значение. 
-Возвращает TRUE, если успешно. Иначе - FALSE.';
 CREATE FUNCTION work_date() RETURNS date
     LANGUAGE sql
     AS $$select tools.work_date();
@@ -25,6 +19,13 @@ COMMENT ON FUNCTION setting(_code text, _dt date) IS 'Возвращает зн�
 Певый параметр - код переменной из def.settings
 Второй - дата. Если отсутсвует, то будет использована расчётная дата.
 Возвращаемое значение - текст.';
+CREATE FUNCTION setting(text, text) RETURNS boolean
+    LANGUAGE sql SECURITY DEFINER
+    AS $_$insert into settings (code, val) values ($1::ltree, $2::text) returning true;$_$;
+COMMENT ON FUNCTION setting(text, text) IS 'Устанавливает значение пользовательской переменой.
+Первый параметр - код переменной из def.settings
+Второй - значение. 
+Возвращает TRUE, если успешно. Иначе - FALSE.';
 CREATE FUNCTION shortname(_fullname text) RETURNS text
     LANGUAGE sql
     AS $_$select COALESCE(_fullname, $1);$_$;
@@ -74,15 +75,40 @@ CREATE FUNCTION tfc_settings() RETURNS trigger
 end;$$;
 COMMENT ON FUNCTION tfc_settings() IS 'Изменяет структуру реквизитов объектов';
 CREATE VIEW companies AS
-    SELECT companies.uuid, companies.code FROM sec.companies, sec.users WHERE ((users.company = companies.uuid) AND (users.user_name = ("session_user"())::text));
+ SELECT companies.uuid, 
+    companies.code
+   FROM sec.companies, 
+    sec.users
+  WHERE ((users.company = companies.uuid) AND (users.user_name = ("session_user"())::text));
 COMMENT ON VIEW companies IS 'Список организаций, для которых ведётся учёт.
 Наименование организации дублируется в пользовательской переменной.';
 CREATE VIEW otypes AS
-    SELECT types.code FROM def.types WHERE (types.code OPERATOR(ext.~) 'dic|doc.*'::ext.lquery);
+ SELECT types.code
+   FROM def.types
+  WHERE (types.code OPERATOR(ext.~) 'dic|doc.*'::ext.lquery);
 CREATE VIEW tap_funky AS
-    SELECT p.oid, n.nspname AS schema, p.proname AS name, array_to_string((p.proargtypes)::regtype[], ','::text) AS args, (CASE p.proretset WHEN true THEN 'setof '::text ELSE ''::text END || (p.prorettype)::regtype) AS returns, p.prolang AS langoid, p.proisstrict AS is_strict, p.proisagg AS is_agg, p.prosecdef AS is_definer, p.proretset AS returns_set, (p.provolatile)::character(1) AS volatility, pg_function_is_visible(p.oid) AS is_visible FROM (pg_proc p JOIN pg_namespace n ON ((p.pronamespace = n.oid)));
+ SELECT p.oid, 
+    n.nspname AS schema, 
+    p.proname AS name, 
+    array_to_string((p.proargtypes)::regtype[], ','::text) AS args, 
+    (
+        CASE p.proretset
+            WHEN true THEN 'setof '::text
+            ELSE ''::text
+        END || (p.prorettype)::regtype) AS returns, 
+    p.prolang AS langoid, 
+    p.proisstrict AS is_strict, 
+    p.proisagg AS is_agg, 
+    p.prosecdef AS is_definer, 
+    p.proretset AS returns_set, 
+    (p.provolatile)::character(1) AS volatility, 
+    pg_function_is_visible(p.oid) AS is_visible
+   FROM (pg_proc p
+   JOIN pg_namespace n ON ((p.pronamespace = n.oid)));
 CREATE VIEW types AS
-    SELECT types.code FROM def.types WHERE ((types.code OPERATOR(ext.~) 'dic|doc|fld.*'::ext.lquery) AND (ext.nlevel(types.code) > 1));
+ SELECT types.code
+   FROM def.types
+  WHERE ((types.code OPERATOR(ext.~) 'dic|doc|fld.*'::ext.lquery) AND (ext.nlevel(types.code) > 1));
 COMMENT ON VIEW types IS 'Типы объектов системы';
 CREATE TRIGGER tiud_companies INSTEAD OF INSERT OR DELETE OR UPDATE ON companies FOR EACH ROW EXECUTE PROCEDURE tfc_companies();
 REVOKE ALL ON SCHEMA public FROM PUBLIC;

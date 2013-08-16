@@ -1,4 +1,5 @@
 SET statement_timeout = 0;
+SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -81,7 +82,11 @@ COMMENT ON COLUMN types.disp IS 'Отображаемое имя';
 COMMENT ON COLUMN types.note IS 'Описание типа';
 COMMENT ON COLUMN types.db_type IS 'Соответствующий тип БД';
 CREATE VIEW navtree AS
-    SELECT types.code, types.disp, types.note FROM types WHERE ((types.code OPERATOR(ext.<@) 'dic'::ext.ltree) OR (types.code OPERATOR(ext.<@) 'doc'::ext.ltree));
+ SELECT types.code, 
+    types.disp, 
+    types.note
+   FROM types
+  WHERE ((types.code OPERATOR(ext.<@) 'dic'::ext.ltree) OR (types.code OPERATOR(ext.<@) 'doc'::ext.ltree));
 SET default_with_oids = true;
 CREATE TABLE requisites (
     parent ext.ltree NOT NULL,
@@ -101,10 +106,20 @@ COMMENT ON COLUMN requisites.disp IS 'Отображаемое имя';
 COMMENT ON COLUMN requisites.isarray IS 'Является массивом';
 COMMENT ON COLUMN requisites.ishistory IS 'Хранить историю изменений';
 CREATE VIEW object_structure AS
-    WITH r2 AS (SELECT requisites.parent, json.element(((requisites.code)::text || tools.iif(requisites.isarray, '[]'::text, ''::text)), (requisites.type)::text) AS element FROM requisites ORDER BY requisites.seq) SELECT r2.parent, json.get(array_agg(r2.element)) AS get FROM r2 GROUP BY r2.parent;
+ WITH r2 AS (
+         SELECT requisites.parent, 
+            json.element(((requisites.code)::text || tools.iif(requisites.isarray, '[]'::text, ''::text)), (requisites.type)::text) AS element
+           FROM requisites
+          ORDER BY requisites.seq
+        )
+ SELECT r2.parent, 
+    json.get(array_agg(r2.element)) AS get
+   FROM r2
+  GROUP BY r2.parent;
 COMMENT ON VIEW object_structure IS 'Структура объектов';
 CREATE VIEW pg_types AS
-    SELECT pg_type.typname FROM pg_type;
+ SELECT pg_type.typname
+   FROM pg_type;
 COMMENT ON VIEW pg_types IS 'Системные типы данных';
 SET default_with_oids = false;
 CREATE TABLE settings (

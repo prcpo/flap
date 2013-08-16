@@ -1,4 +1,5 @@
 SET statement_timeout = 0;
+SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -189,13 +190,26 @@ COMMENT ON COLUMN settings.company IS 'Организация';
 COMMENT ON COLUMN settings."user" IS 'Пользователь';
 COMMENT ON COLUMN settings.val IS 'Значение';
 CREATE VIEW user_settings_wo_history AS
-    SELECT s.code, s.company, s."user", s.val FROM settings s WHERE ((COALESCE(s.company, tools.uuid_null()) = COALESCE(def.settings_company(s.code), tools.uuid_null())) AND (COALESCE(s."user", ''::text) = COALESCE(def.settings_user(s.code), ''::text)));
+ SELECT s.code, 
+    s.company, 
+    s."user", 
+    s.val
+   FROM settings s
+  WHERE ((COALESCE(s.company, tools.uuid_null()) = COALESCE(def.settings_company(s.code), tools.uuid_null())) AND (COALESCE(s."user", ''::text) = COALESCE(def.settings_user(s.code), ''::text)));
 COMMENT ON VIEW user_settings_wo_history IS 'Переменные пользователя без учёта истории';
 CREATE VIEW user_settings_h AS
-    SELECT s.code, COALESCE(h.val, s.val) AS val, daterange(COALESCE(h.dt, '-infinity'::date), COALESCE(h.dt_e, 'infinity'::date)) AS period FROM (user_settings_wo_history s LEFT JOIN history h ON ((((h.code OPERATOR(ext.=) s.code) AND (h.company = s.company)) AND (h."user" = s."user"))));
+ SELECT s.code, 
+    COALESCE(h.val, s.val) AS val, 
+    daterange(COALESCE(h.dt, '-infinity'::date), COALESCE(h.dt_e, 'infinity'::date)) AS period
+   FROM (user_settings_wo_history s
+   LEFT JOIN history h ON ((((h.code OPERATOR(ext.=) s.code) AND (h.company = s.company)) AND (h."user" = s."user"))));
 COMMENT ON VIEW user_settings_h IS 'Переменные пользователя с историей';
 CREATE VIEW settings_h AS
-    SELECT d.code, COALESCE(s.val, d.default_value) AS val, COALESCE(s.period, daterange('-infinity'::date, 'infinity'::date)) AS period FROM (def.settings d LEFT JOIN user_settings_h s ON ((s.code OPERATOR(ext.=) d.code)));
+ SELECT d.code, 
+    COALESCE(s.val, d.default_value) AS val, 
+    COALESCE(s.period, daterange('-infinity'::date, 'infinity'::date)) AS period
+   FROM (def.settings d
+   LEFT JOIN user_settings_h s ON ((s.code OPERATOR(ext.=) d.code)));
 COMMENT ON VIEW settings_h IS 'Все значения переменных, доступные пользователю, включая их историю';
 ALTER TABLE ONLY history
     ADD CONSTRAINT pk_history PRIMARY KEY (code, company, "user", dt);

@@ -1,4 +1,5 @@
 SET statement_timeout = 0;
+SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -86,15 +87,15 @@ select array[array_to_string(path,'.')||'.'||
 	regexp_replace(token,'^"|"$','','g')
 	]
 from res$_$;
-CREATE FUNCTION value(text) RETURNS text
-    LANGUAGE sql
-    AS $_$select regexp_replace($1,'^([^\{]*[^\}])$',E'"\\1"','g')$_$;
-CREATE FUNCTION value(integer) RETURNS text
+CREATE FUNCTION value(boolean) RETURNS text
     LANGUAGE sql
     AS $_$select $1::text$_$;
-CREATE FUNCTION value(boolean) RETURNS text
+CREATE FUNCTION value(integer) RETURNS text
     LANGUAGE sql
     AS $_$select $1::text$_$;
 CREATE FUNCTION value(json) RETURNS json
     LANGUAGE sql
     AS $_$select $1$_$;
+CREATE FUNCTION value(text) RETURNS text
+    LANGUAGE sql
+    AS $_$select regexp_replace($1,'^([^\{]*[^\}])$',E'"\\1"','g')$_$;
