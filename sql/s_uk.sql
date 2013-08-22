@@ -300,6 +300,37 @@ CREATE VIEW services_specified AS
     dic_services s, 
     dic_companies c
   WHERE (((cn.service = s.uuid) AND (cn.building = b.uuid)) AND (cn.company = c.uuid));
+CREATE VIEW works_hlist AS
+ WITH RECURSIVE t(uuid, parent, disp, path, disp_path, level, cycle) AS (
+                 SELECT t1.uuid, 
+                    t1.parent, 
+                    t1.disp, 
+                    ARRAY[t1.uuid] AS "array", 
+                    ARRAY[t1.disp] AS "array", 
+                    1, 
+                    false AS bool
+                   FROM dic_works t1
+                  WHERE (t1.parent IS NULL)
+        UNION ALL 
+                 SELECT t2.uuid, 
+                    t2.parent, 
+                    t2.disp, 
+                    (t_1.path || t2.uuid), 
+                    (t_1.disp_path || t2.disp), 
+                    (t_1.level + 1), 
+                    (t2.uuid = ANY (t_1.path))
+                   FROM (dic_works t2
+              JOIN t t_1 ON (((t_1.uuid = t2.parent) AND (NOT t_1.cycle))))
+        )
+ SELECT t.uuid, 
+    t.parent, 
+    t.disp, 
+    t.path, 
+    t.disp_path, 
+    t.level, 
+    t.cycle
+   FROM t
+  ORDER BY t.path;
 ALTER TABLE ONLY doc_work_execution ALTER COLUMN id SET DEFAULT nextval('doc_work_execution_id_seq'::regclass);
 ALTER TABLE ONLY r_contract_works ALTER COLUMN id SET DEFAULT nextval('r_contract_works_id_seq'::regclass);
 ALTER TABLE ONLY dic_buildings
